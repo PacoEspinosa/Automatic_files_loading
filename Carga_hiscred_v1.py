@@ -82,8 +82,10 @@ for date in datelist:
 	fechaoper varchar(11),
     efecto_saldo int,
 
-            staging_step_3 = "insert into Transacciones.Transacciones_TDC_2016 select producto, num_credito, num_cliente, sucursal,
-            staging_step_3 += " folio_suc, num_tdc, monto, tipo_trxn, transaccion, contable, fechaoper, efecto_saldo"
+            staging_step_3 = "insert into Transacciones.Transacciones_TDC_2016 (producto, num_credito, num_cliente, sucursal,"
+            staging_step_3 += " folio_suc, num_tdc, monto, descripcion, transaccion, contable, fechaoper)"
+            staging_step_3 += " select producto, num_credito, num_cliente, sucursal,"
+            staging_step_3 += " folio_suc, num_tdc, monto, descripcion, transaccion, contable, fechaoper"
             staging_step_3 += " from Staging.tmphiscred"
             staging_step_3 += " where transaccion in ('6940','4201','6608')"
             staging_step_3 += " and control = 'ok';"
