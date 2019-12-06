@@ -33,9 +33,12 @@ transact_table = 'Transacciones_TDC_2016'
 operative_table = 'Operativas'
 filepattern = 'hiscred'
 fileext = ""
-host= '10.26.211.46'
-user= 'analitics'
-password= '2017YdwVCs51may2'
+host = '192.168.0.28'
+user = 'root'
+password = 'Alb3rt-31nstein'
+#host= '10.26.211.46'
+#user= 'analitics'
+#password= '2017YdwVCs51may2'
 table = 'tmphiscred'
 
 for r, d, f in os.walk(path):
