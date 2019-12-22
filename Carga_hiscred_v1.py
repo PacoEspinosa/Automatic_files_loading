@@ -33,12 +33,13 @@ transact_table = 'Transacciones_TDC_2016'
 operative_table = 'Operativas'
 filepattern = 'hiscred'
 fileext = ""
-host = '192.168.0.28'
-user = 'root'
-password = 'Alb3rt-31nstein'
-#host= '10.26.211.46'
-#user= 'analitics'
-#password= '2017YdwVCs51may2'
+#host = '192.168.0.28'
+port = 3306
+#user = 'root'
+#password = 'Alb3rt-31nstein'
+host= '10.26.211.46'
+user= 'analitics'
+password= '2017YdwVCs51may2'
 table = 'tmphiscred'
 
 for r, d, f in os.walk(path):
@@ -58,11 +59,12 @@ for date in datelist:
             con = pymysql.connect(host = host, 
                               user = user, 
                               password = password, 
+                              port = port,
                               autocommit=True,
                               local_infile=1)
             cursor = con.cursor()
             cursor.execute("truncate table Staging." + table + ';')
-            cursor.execute(load_sql)
+            #cursor.execute(load_sql)
             logging_carga(cursor, filename, table)
 #Staging
             staging_step_1 = "update Staging.tmphiscred Set fechaoper = concat(substr(fechaoper,7,4), "-", substr(fechaoper,1,2), "-", substr(fechaoper,4,2)),"
