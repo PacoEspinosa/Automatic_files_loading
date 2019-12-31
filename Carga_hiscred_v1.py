@@ -38,8 +38,10 @@ port = 3306
 #user = 'root'
 #password = 'Alb3rt-31nstein'
 host= '10.26.211.46'
-user= 'analitics'
-password= '2017YdwVCs51may2'
+#user= 'analitics'
+#password= '2017YdwVCs51may2'
+user= 'c97635723'
+password= '9AJG7ae4gAE3av4a'
 table = 'tmphiscred'
 
 for r, d, f in os.walk(path):
