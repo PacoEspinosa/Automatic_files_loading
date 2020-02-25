@@ -29,11 +29,11 @@ def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     
 
 #Constantes
-date1 = '2020-02-14'  
-date2 = '2020-02-17'
-transact_table = 'Transacciones_TDC_2020'
+date1 = '2017-06-30'  
+date2 = '2017-11-30'
+transact_table = 'Transacciones_TDC_2017'
 operative_table = 'Operativas'
-filepattern = 'his_credito'
+filepattern = 'hiscred'
 fileext = ""
 #host = '192.168.0.28'
 port = 3306
