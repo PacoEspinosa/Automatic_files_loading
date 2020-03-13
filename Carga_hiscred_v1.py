@@ -29,11 +29,11 @@ def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     
 
 #Constantes
-date1 = '2017-06-30'  
-date2 = '2017-11-30'
-transact_table = 'Transacciones_TDC_2017'
+date1 = '2019-10-01'  
+date2 = '2019-10-31'
+transact_table = 'Transacciones_TDC_2019'
 operative_table = 'Operativas'
-filepattern = 'hiscred'
+filepattern = 'his_credito'
 fileext = ""
 #host = '192.168.0.28'
 port = 3306
@@ -112,9 +112,9 @@ for date in datelist:
             logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones financieras del dia')
 
             paso = 5
-            staging_step_4 = "insert into Transacciones." + operative_table + " (producto, num_credito, num_cliente, sucursal,"
+            staging_step_4 = "insert into Transacciones." + operative_table + " (producto, num_credito, num_cliente, sucursal, folio_suc, "
             staging_step_4 += " num_tdc, monto, descripcion, transaccion, fechaoper)"
-            staging_step_4 += " select producto, num_credito, num_cliente, sucursal,"
+            staging_step_4 += " select producto, num_credito, num_cliente, sucursal, folio_suc, "
             staging_step_4 += " num_tdc, monto, descripcion, transaccion, fechaoper"
             staging_step_4 += " from Staging." + table
             staging_step_4 += " where transaccion in ('6450','6451','6452','6453','6512','6515','6591','6600','6655','6695',"
