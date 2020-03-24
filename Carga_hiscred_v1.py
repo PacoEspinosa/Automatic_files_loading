@@ -10,9 +10,12 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
 import os
 import pandas as pd
 import pymysql
+import warnings
 #Variables
 path = os.getcwd() #obtiene el directorio de trabajo actual
 files = []
+
+warnings.simplefilter('error', UserWarning)
 
 #funciones
 def logging_carga(cursor_con, filename, staging_table):
@@ -29,9 +32,9 @@ def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     
 
 #Constantes
-date1 = '2019-10-01'  
-date2 = '2019-10-31'
-transact_table = 'Transacciones_TDC_2019'
+date1 = '2020-03-20'  
+date2 = '2020-03-23'
+transact_table = 'Transacciones_TDC_2020'
 operative_table = 'Operativas'
 filepattern = 'his_credito'
 fileext = ""
