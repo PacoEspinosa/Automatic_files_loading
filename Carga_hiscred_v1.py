@@ -32,8 +32,8 @@ def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     
 
 #Constantes
-date1 = '2020-03-20'  
-date2 = '2020-03-23'
+date1 = '2020-04-04'  
+date2 = '2020-04-12'
 transact_table = 'Transacciones_TDC_2020'
 operative_table = 'Operativas'
 filepattern = 'his_credito'
