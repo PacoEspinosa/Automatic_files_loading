@@ -47,7 +47,7 @@ password= '9AJG7ae4gAE3av4a'
 staging_table = 'tmp_solicitudes'
 table = 'Solicitudes.Solicitudes_2017'
 pasos_proceso = 7
-proceso = 'Carga transacciones'
+proceso = 'Carga Solicitudes'
 
 
 for r, d, f in os.walk(path):
@@ -76,16 +76,16 @@ if filename in files:
         logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
 #Staging
         paso = 2
-        staging_step_1a = "update Staging." + staging_table + " Set FECHASOL = concat(substr(FECHASOL,7,4), '-', substr(FECHASOL,1,2), '-', substr(FECHASOL,4,2)),"
+        staging_step_1a = "update Staging." + staging_table + " Set FECHASOL = concat(substr(FECHASOL,7,4), '-', substr(FECHASOL,1,2), '-', substr(FECHASOL,4,2))"
         staging_step_1a += "where length(FECHASOL) = 10;"
         cursor.execute(staging_step_1a)
-        staging_step_1b = "update Staging." + staging_table + " Set FECHANAC = concat(substr(FECHANAC,7,4), '-', substr(FECHANAC,1,2), '-', substr(FECHANAC,4,2)),"
+        staging_step_1b = "update Staging." + staging_table + " Set FECHANAC = concat(substr(FECHANAC,7,4), '-', substr(FECHANAC,1,2), '-', substr(FECHANAC,4,2))"
         staging_step_1b += "where length(FECHANAC) = 10;"
         cursor.execute(staging_step_1b)
-        staging_step_1c = "update Staging." + staging_table + " Set FECHARESP = concat(substr(FECHASOL,7,4), '-', substr(FECHARESP,1,2), '-', substr(FECHARESP,4,2)),"
+        staging_step_1c = "update Staging." + staging_table + " Set FECHARESP = concat(substr(FECHASOL,7,4), '-', substr(FECHARESP,1,2), '-', substr(FECHARESP,4,2))"
         staging_step_1c += "where length(FECHARESP) = 10;"
         cursor.execute(staging_step_1c)
-        staging_step_1d = "update Staging." + staging_table + " Set FECHA_APERT = concat(substr(FECHA_APERT,7,4), '-', substr(FECHA_APERT,1,2), '-', substr(FECHA_APERT,4,2)),"
+        staging_step_1d = "update Staging." + staging_table + " Set FECHA_APERT = concat(substr(FECHA_APERT,7,4), '-', substr(FECHA_APERT,1,2), '-', substr(FECHA_APERT,4,2))"
         staging_step_1d += "where length(FECHA_APERT) = 10;"
         cursor.execute(staging_step_1d)
         logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
@@ -117,6 +117,7 @@ if filename in files:
         staging_step_4 += " a.APPATERNO,"
         staging_step_4 += " a.APMATERNO,"
         staging_step_4 += " a.NOMBRE1,"
+        staging_step_4 += " a.NOMBRE2,"
         staging_step_4 += " a.RFC,"
         staging_step_4 += " a.FECHANAC,"
         staging_step_4 += " a.CLACIUCOBR,"
