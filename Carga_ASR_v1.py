@@ -11,6 +11,7 @@ import os
 import pymysql
 import warnings
 import datetime
+import fnmatch
 
 #Variables
 path = os.getcwd() #obtiene el directorio de trabajo actual
@@ -33,8 +34,9 @@ def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     
 
 #Constantes
-filepattern = 'solic'
-fileext = ""
+filepattern = 'Autorizadas_'
+fileext = ".txt"
+familia = 'TDC' if filepattern == 'Autorizadas_' else 'PP'
 #host = '192.168.0.28'
 port = 3306
 #user = 'root'
@@ -44,21 +46,23 @@ host= '10.26.211.46'
 #password= '2017YdwVCs51may2'
 user= 'c97635723'
 password= '9AJG7ae4gAE3av4a'
-staging_table = 'tmp_solicitudes'
-table = 'Solicitudes.Solicitudes_2017'
+staging_table = 'tmp_aut_sin_recoger'
+table = 'Campañas.Aut_sin_recoger'
 pasos_proceso = 7
-proceso = 'Carga Solicitudes'
+proceso = 'Carga ASR_' + familia
 
 
-for r, d, f in os.walk(path):
-    for file in f:
+for file in os.listdir('.'):
+    if fnmatch.fnmatch(file, 'Autorizadas_*'):
+        #print(file)
         files.append(file)
 
-filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
-if filename in files:
+#filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
+for filename in files:
     load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
     load_sql += " fields terminated by '|' escaped by '' "
-    load_sql += " lines terminated by '\n';"
+    load_sql += " lines terminated by '\n'"
+    load_sql += " ignore 1 lines;"
     #print(filename)
    
     try:
@@ -73,24 +77,38 @@ if filename in files:
         cursor.execute('truncate table Staging.' + staging_table + ';')
         cursor.execute(load_sql)
         logging_carga(cursor, filename, staging_table)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
+        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo ASR')
 #Staging
         paso = 2
-        staging_step_1a = "update Staging." + staging_table + " Set FECHASOL = concat(substr(FECHASOL,7,4), '-', substr(FECHASOL,1,2), '-', substr(FECHASOL,4,2))"
-        staging_step_1a += "where length(FECHASOL) = 10;"
+        staging_step_1a = "update Staging." + staging_table + " Set Fecha_autorizacion = concat(substr(Fecha_autorizacion,7,4), '-', substr(Fecha_autorizacion,1,2), '-', substr(Fecha_autorizacion,4,2))"
+        staging_step_1a += ", Fecha_limite = concat(substr(Fecha_limite,7,4), "-", substr(Fecha_limite,1,2), "-", substr(Fecha_limite,4,2))"
+        staging_step_1a += ", Archivo = '" + filename + "'"
+        staging_step_1a += ", Familia = " + familia
+        staging_step_1a += ", Producto = case when substr(num_credito,1,2) = '60' then 'Clasica' when substr(num_credito,1,2) = '81' then 'Oro'"
+        staging_step_1a += " when substr(num_credito,1,2) = '70' then 'Platinum' when substr(num_credito,1,2) = '66' then 'Básica'"
+        staging_step_1a += " when substr(num_credito,1,2) = '78' then 'ADN' when substr(num_credito,1,2) = '61' then 'Reestructura' "
+        staging_step_1a += " when substr(num_credito,1,2) = '63' then 'PP_12' when substr(num_credito,1,2) = '69' then 'PFB'"
+        staging_step_1a += " when substr(num_credito,1,2) = '76' then 'PP_18' when substr(num_credito,1,2) = '77' then 'PP_24'"
+        staging_step_1a += " when substr(num_credito,1,2) = '68' then 'Flexible' when substr(num_credito,1,2) = '85' then 'G. Coppel' else 'S/P' end"
+        staging_step_1a += ", control = 'ok'"
+        staging_step_1a += " where control is null;"
         cursor.execute(staging_step_1a)
-        staging_step_1b = "update Staging." + staging_table + " Set FECHANAC = concat(substr(FECHANAC,7,4), '-', substr(FECHANAC,1,2), '-', substr(FECHANAC,4,2))"
-        staging_step_1b += "where length(FECHANAC) = 10;"
-        cursor.execute(staging_step_1b)
-        staging_step_1c = "update Staging." + staging_table + " Set FECHARESP = concat(substr(FECHASOL,7,4), '-', substr(FECHARESP,1,2), '-', substr(FECHARESP,4,2))"
-        staging_step_1c += "where length(FECHARESP) = 10;"
-        cursor.execute(staging_step_1c)
-        staging_step_1d = "update Staging." + staging_table + " Set FECHA_APERT = concat(substr(FECHA_APERT,7,4), '-', substr(FECHA_APERT,1,2), '-', substr(FECHA_APERT,4,2))"
-        staging_step_1d += "where length(FECHA_APERT) = 10;"
-        cursor.execute(staging_step_1d)
         logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
 
         paso = 3
+insert into Campañas.Aut_sin_recoger select Tipo_Promocion,
+Tipo_Logica,
+num_credito,
+num_cliente,
+Estado,
+Fecha_autorizacion,
+Fecha_limite,
+@fecha_seguimiento,
+Archivo,
+Familia,
+Producto
+from Staging.tmp_aut_sin_recoger
+where control = 'ok';
         staging_step_2a = "insert into Staging.tmp_solicitudes_rvw select * from Staging.tmp_solicitudes where length(FECHASOL) <> 10;"
         cursor.execute(staging_step_2a)
         staging_step_2b = "delete from Staging." + staging_table + " where length(FECHASOL) <> 10;"
@@ -250,5 +268,4 @@ if filename in files:
         
     except Exception as e:
         print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
-else:
-    print('No se localizó el archivo: ' + filename)
+
