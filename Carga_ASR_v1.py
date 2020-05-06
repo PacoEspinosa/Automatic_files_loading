@@ -22,30 +22,39 @@ warnings.simplefilter('error', UserWarning)
 #funciones
 def logging_carga(cursor_con, filename, staging_table):
     mysql_log_load = "insert into Operacion_datamart.Importacion "
-    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros from Staging." + staging_table + "; ";
-    cursor_con.execute(mysql_log_load)
+    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros, 0 as reproceso from Staging." + staging_table + "; ";
+    cursor.execute(mysql_log_load)
     
 def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     Etapa = str(step) + "/" + str(total_steps) + ") " + descripcion
     mysql_log_task = "insert into Operacion_datamart.Logs_procesos (fecha, Proceso, Etapa) "
     mysql_log_task += " select now() as fecha, '" + process + "' , '" + Etapa + "';"
     #print(mysql_log_task)
-    cursor_con.execute(mysql_log_task)
+    cursor.execute(mysql_log_task)
+    
+def Validacion_archivo (filename):
+    stmt = "select * from Operacion_datamart.Importacion where Nombre_archivo = '" + filename + "' and Reproceso = 0;"
+    cursor.execute(stmt)
+    result = cursor.fetchone()
+    if result:
+        return True
+    else:
+        return False
     
 
 #Constantes
-filepattern = 'Autorizadas_'
+filepattern = 'Prestamos_'  #Autorizadas_/Prestamos_
 fileext = ".txt"
 familia = 'TDC' if filepattern == 'Autorizadas_' else 'PP'
 port = 3306
-"""host = '192.168.0.15'
+host = '192.168.0.15'
 user = 'root'
-password = 'Alb3rt-31nstein'"""
-host= '10.26.211.46'
+password = 'Alb3rt-31nstein'
+#host= '10.26.211.46'
 #user= 'analitics'
 #password= '2017YdwVCs51may2'
-user= 'c97635723'
-password= '9AJG7ae4gAE3av4a'
+#user= 'c97635723'
+#password= '9AJG7ae4gAE3av4a'
 staging_table = 'tmp_aut_sin_recoger'
 table = 'Campañas.Aut_sin_recoger'
 pasos_proceso = 3
@@ -53,7 +62,7 @@ proceso = 'Carga ASR_' + familia
 fecha_seguimiento = datetime.datetime.today().strftime("%Y%m%d")
 
 for file in os.listdir('.'):
-    if fnmatch.fnmatch(file, 'Autorizadas_*'):
+    if fnmatch.fnmatch(file, (filepattern + '*')):
         #print(file)
         files.append(file)
 
@@ -74,6 +83,11 @@ for filename in files:
                           autocommit=True,
                           local_infile=1)
         cursor = con.cursor()
+        if Validacion_archivo(filename):
+            print('Archivo previamente cargado: ' + filename)
+            con.close()
+            continue
+        
         cursor.execute('truncate table Staging.' + staging_table + ';')
         cursor.execute(load_sql)
         logging_carga(cursor, filename, staging_table)
@@ -81,9 +95,9 @@ for filename in files:
 #Staging
         paso = 2
         staging_step_1a = "update Staging." + staging_table + " Set Fecha_autorizacion = concat(substr(Fecha_autorizacion,7,4), '-', substr(Fecha_autorizacion,1,2), '-', substr(Fecha_autorizacion,4,2))"
-        staging_step_1a += ", Fecha_limite = concat(substr(Fecha_limite,7,4), "-", substr(Fecha_limite,1,2), "-", substr(Fecha_limite,4,2))"
+        staging_step_1a += ", Fecha_limite = concat(substr(Fecha_limite,7,4), '-', substr(Fecha_limite,1,2), '-', substr(Fecha_limite,4,2))"
         staging_step_1a += ", Archivo = '" + filename + "'"
-        staging_step_1a += ", Familia = " + familia
+        staging_step_1a += ", Familia = '" + familia + "'"
         staging_step_1a += ", Producto = case when substr(num_credito,1,2) = '60' then 'Clasica' when substr(num_credito,1,2) = '81' then 'Oro'"
         staging_step_1a += " when substr(num_credito,1,2) = '70' then 'Platinum' when substr(num_credito,1,2) = '66' then 'Básica'"
         staging_step_1a += " when substr(num_credito,1,2) = '78' then 'ADN' when substr(num_credito,1,2) = '61' then 'Reestructura' "

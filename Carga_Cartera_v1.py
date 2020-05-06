@@ -21,7 +21,7 @@ warnings.simplefilter('error', UserWarning)
 #funciones
 def logging_carga(cursor_con, filename, staging_table):
     mysql_log_load = "insert into Operacion_datamart.Importacion "
-    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros from Staging." + staging_table + "; ";
+    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros, 0 as reproceso from Staging." + staging_table + "; ";
     cursor_con.execute(mysql_log_load)
     
 def logging_proceso(cursor_con, process, total_steps, step, descripcion):
@@ -30,20 +30,28 @@ def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     mysql_log_task += " select now() as fecha, '" + process + "' , '" + Etapa + "';"
     #print(mysql_log_task)
     cursor_con.execute(mysql_log_task)
-    
+
+def Validacion_archivo (filename):
+    stmt = "select * from Operacion_datamart.Importacion where Nombre_archivo = '" + filename + "' and Reproceso = 0;"
+    cursor.execute(stmt)
+    result = cursor.fetchone()
+    if result:
+        return True
+    else:
+        return False    
 
 #Constantes
 filepattern = 'solic'
 fileext = ""
-#host = '192.168.0.28'
 port = 3306
-#user = 'root'
-#password = 'Alb3rt-31nstein'
-host= '10.26.211.46'
+host = '192.168.0.28'
+user = 'root'
+password = 'Alb3rt-31nstein'
+#host= '10.26.211.46'
 #user= 'analitics'
 #password= '2017YdwVCs51may2'
-user= 'c97635723'
-password= '9AJG7ae4gAE3av4a'
+#user= 'c97635723'
+#password= '9AJG7ae4gAE3av4a'
 staging_table = 'tmp_solicitudes'
 table = 'Solicitudes.Solicitudes_2017'
 pasos_proceso = 7

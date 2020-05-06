@@ -11,6 +11,7 @@ import os
 import pymysql
 import warnings
 import datetime
+import sys
 
 #Variables
 path = os.getcwd() #obtiene el directorio de trabajo actual
@@ -21,16 +22,24 @@ warnings.simplefilter('error', UserWarning)
 #funciones
 def logging_carga(cursor_con, filename, staging_table):
     mysql_log_load = "insert into Operacion_datamart.Importacion "
-    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros from Staging." + staging_table + "; ";
-    cursor_con.execute(mysql_log_load)
+    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros, 0 as reproceso from Staging." + staging_table + "; ";
+    cursor.execute(mysql_log_load)
     
 def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     Etapa = str(step) + "/" + str(total_steps) + ") " + descripcion
     mysql_log_task = "insert into Operacion_datamart.Logs_procesos (fecha, Proceso, Etapa) "
     mysql_log_task += " select now() as fecha, '" + process + "' , '" + Etapa + "';"
     #print(mysql_log_task)
-    cursor_con.execute(mysql_log_task)
+    cursor.execute(mysql_log_task)
     
+def Validacion_archivo (filename):
+    stmt = "select * from Operacion_datamart.Importacion where Nombre_archivo = '" + filename + "' and Reproceso = 0;"
+    cursor.execute(stmt)
+    result = cursor.fetchone()
+    if result:
+        return True
+    else:
+        return False
 
 #Constantes
 filepattern = 'trancheq'
@@ -70,6 +79,11 @@ if filename in files:
                           autocommit=True,
                           local_infile=1)
         cursor = con.cursor()
+        if Validacion_archivo(filename):
+            print('Archivo previamente cargado: ' + filename)
+            con.close()
+            sys.exit()
+
         cursor.execute('truncate table Staging.' + staging_table + ';')
         cursor.execute(load_sql)
         logging_carga(cursor, filename, staging_table)
