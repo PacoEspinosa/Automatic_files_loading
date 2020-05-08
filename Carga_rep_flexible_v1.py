@@ -12,6 +12,7 @@ import pymysql
 import warnings
 import datetime
 import sys
+import Complement_functions as cf
 
 #Variables
 path = os.getcwd() #obtiene el directorio de trabajo actual
@@ -20,26 +21,7 @@ files = []
 warnings.simplefilter('error', UserWarning)
 
 #funciones
-def logging_carga(cursor_con, filename, staging_table):
-    mysql_log_load = "insert into Operacion_datamart.Importacion "
-    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros, 0 as reproceso from Staging." + staging_table + "; ";
-    cursor.execute(mysql_log_load)
-    
-def logging_proceso(cursor_con, process, total_steps, step, descripcion):
-    Etapa = str(step) + "/" + str(total_steps) + ") " + descripcion
-    mysql_log_task = "insert into Operacion_datamart.Logs_procesos (fecha, Proceso, Etapa) "
-    mysql_log_task += " select now() as fecha, '" + process + "' , '" + Etapa + "';"
-    #print(mysql_log_task)
-    cursor.execute(mysql_log_task)
-    
-def Validacion_archivo (filename):
-    stmt = "select * from Operacion_datamart.Importacion where Nombre_archivo = '" + filename + "' and Reproceso = 0;"
-    cursor.execute(stmt)
-    result = cursor.fetchone()
-    if result:
-        return True
-    else:
-        return False
+
     
 #Constantes
 filepattern = 'Reporte_P_Flexible_'
@@ -81,15 +63,15 @@ if filename in files:
                           autocommit=True,
                           local_infile=1)
         cursor = con.cursor()
-        if Validacion_archivo(filename):
+        if cf.Validacion_archivo(cursor, filename):
             print('Archivo previamente cargado: ' + filename)
             con.close()
             sys.exit()
 
         cursor.execute('truncate table Staging.' + staging_table + ';')
         cursor.execute(load_sql)
-        logging_carga(cursor, filename, staging_table)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
+        cf.logging_carga(cursor, filename, staging_table)
+        cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
 #Staging
         paso = 2
         staging_step_1a = "update Staging." + staging_table + " Set fecha_disp = concat(substr(fecha_disp,7,4), '-', substr(fecha_disp,4,2), '-', substr(fecha_disp,1,2))"
@@ -104,7 +86,7 @@ if filename in files:
         staging_step_1c += ", control = 'ok'"
         staging_step_1c += "where length(fecha_apertura) = 10;"
         cursor.execute(staging_step_1c)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
+        cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
 
         paso = 3
         staging_step_2a = "truncate Cuentas_tc.Rep_flexible;"
@@ -129,7 +111,7 @@ if filename in files:
         staging_step_2b += " from Staging.tmp_rep_flexible"
 #        staging_step_2b += " where control = 'ok';"
         cursor.execute(staging_step_2b)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla del mes')
+        cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla del mes')
 
         paso = 4
         staging_step_3 = "insert into Historicos.Rep_flexible select " + datetime.datetime.today().strftime("%Y-%m-%d") + ","
@@ -152,7 +134,7 @@ if filename in files:
         staging_step_3 += " linea_credito"
         staging_step_3 += " from Cuentas_tc.Rep_flexible;"
         cursor.execute(staging_step_3)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla historica')
+        cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla historica')
 
         print('Proceso de carga terminado: ' + filename)
 

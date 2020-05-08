@@ -12,7 +12,7 @@ import pymysql
 import warnings
 import datetime
 import fnmatch
-
+import Complement_functions as cf
 #Variables
 path = os.getcwd() #obtiene el directorio de trabajo actual
 files = []
@@ -20,27 +20,7 @@ files = []
 warnings.simplefilter('error', UserWarning)
 
 #funciones
-def logging_carga(cursor_con, filename, staging_table):
-    mysql_log_load = "insert into Operacion_datamart.Importacion "
-    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros, 0 as reproceso from Staging." + staging_table + "; ";
-    cursor.execute(mysql_log_load)
-    
-def logging_proceso(cursor_con, process, total_steps, step, descripcion):
-    Etapa = str(step) + "/" + str(total_steps) + ") " + descripcion
-    mysql_log_task = "insert into Operacion_datamart.Logs_procesos (fecha, Proceso, Etapa) "
-    mysql_log_task += " select now() as fecha, '" + process + "' , '" + Etapa + "';"
-    #print(mysql_log_task)
-    cursor.execute(mysql_log_task)
-    
-def Validacion_archivo (filename):
-    stmt = "select * from Operacion_datamart.Importacion where Nombre_archivo = '" + filename + "' and Reproceso = 0;"
-    cursor.execute(stmt)
-    result = cursor.fetchone()
-    if result:
-        return True
-    else:
-        return False
-    
+
 
 #Constantes
 filepattern = 'Prestamos_'  #Autorizadas_/Prestamos_
@@ -83,15 +63,15 @@ for filename in files:
                           autocommit=True,
                           local_infile=1)
         cursor = con.cursor()
-        if Validacion_archivo(filename):
+        if cf.Validacion_archivo(cursor, filename):
             print('Archivo previamente cargado: ' + filename)
             con.close()
             continue
         
         cursor.execute('truncate table Staging.' + staging_table + ';')
         cursor.execute(load_sql)
-        logging_carga(cursor, filename, staging_table)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo ASR')
+        cf.logging_carga(cursor, filename, staging_table)
+        cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo ASR')
 #Staging
         paso = 2
         staging_step_1a = "update Staging." + staging_table + " Set Fecha_autorizacion = concat(substr(Fecha_autorizacion,7,4), '-', substr(Fecha_autorizacion,1,2), '-', substr(Fecha_autorizacion,4,2))"
@@ -107,7 +87,7 @@ for filename in files:
         staging_step_1a += ", control = 'ok'"
         staging_step_1a += " where control is null;"
         cursor.execute(staging_step_1a)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
+        cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
 
         paso = 3
         staging_step_2a = "insert into Campañas.Aut_sin_recoger select Tipo_Promocion,"
@@ -124,7 +104,7 @@ for filename in files:
         staging_step_2a += " from Staging.tmp_aut_sin_recoger"
         staging_step_2a += " where control = 'ok';"
         cursor.execute(staging_step_2a)
-        logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Incorpora registros dela semana')
+        cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Incorpora registros dela semana')
 
 
 

@@ -11,6 +11,8 @@ import os
 import pandas as pd
 import pymysql
 import warnings
+import Complement_functions as cf
+
 #Variables
 path = os.getcwd() #obtiene el directorio de trabajo actual
 files = []
@@ -18,26 +20,6 @@ files = []
 warnings.simplefilter('error', UserWarning)
 
 #funciones
-def logging_carga(cursor_con, filename, staging_table):
-    mysql_log_load = "insert into Operacion_datamart.Importacion "
-    mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros, 0 as reproceso from Staging." + staging_table + "; ";
-    cursor.execute(mysql_log_load)
-    
-def logging_proceso(cursor_con, process, total_steps, step, descripcion):
-    Etapa = str(step) + "/" + str(total_steps) + ") " + descripcion
-    mysql_log_task = "insert into Operacion_datamart.Logs_procesos (fecha, Proceso, Etapa) "
-    mysql_log_task += " select now() as fecha, '" + process + "' , '" + Etapa + "';"
-    #print(mysql_log_task)
-    cursor.execute(mysql_log_task)
-    
-def Validacion_archivo (filename):
-    stmt = "select * from Operacion_datamart.Importacion where Nombre_archivo = '" + filename + "' and Reproceso = 0;"
-    cursor.execute(stmt)
-    result = cursor.fetchone()
-    if result:
-        return True
-    else:
-        return False    
 
 #Constantes
 date1 = '2020-04-04'  
@@ -83,21 +65,21 @@ for date in datelist:
                               autocommit=True,
                               local_infile=1)
             cursor = con.cursor()
-            if Validacion_archivo(filename):
+            if cf.Validacion_archivo(cursor,filename):
                 print('Archivo previamente cargado: ' + filename)
                 con.close()
                 continue
 
             cursor.execute("truncate table Staging." + table + ';')
             cursor.execute(load_sql)
-            logging_carga(cursor, filename, table)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo transacciones')
+            cf.logging_carga(cursor, filename, table)
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo transacciones')
 #Staging
             paso = 2
             staging_step_1 = "update Staging.tmphiscred Set fechaoper = concat(substr(fechaoper,7,4), '-', substr(fechaoper,1,2), '-', substr(fechaoper,4,2)),"
             staging_step_1 += "control = 'ok' where (control = '' or control is null);"
             cursor.execute(staging_step_1)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
 
             paso = 3
             staging_step_2 = "insert into Historicos.Intereses select fechaoper, num_credito, Monto, descripcion, transaccion"
@@ -106,7 +88,7 @@ for date in datelist:
             staging_step_2 += " and control = 'ok'"
             staging_step_2 += " and secuencia not in (2,3);"
             cursor.execute(staging_step_2)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta en el historico de intereses')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta en el historico de intereses')
 
             paso = 4
             staging_step_3 = "insert into Transacciones." + transact_table + " (producto, num_credito, num_cliente, sucursal,"
@@ -125,7 +107,7 @@ for date in datelist:
             staging_step_3 += " and control = 'ok'"
             staging_step_3 += " and secuencia not in (2,3);"
             cursor.execute(staging_step_3)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones financieras del dia')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones financieras del dia')
 
             paso = 5
             staging_step_4 = "insert into Transacciones." + operative_table + " (producto, num_credito, num_cliente, sucursal, folio_suc, "
@@ -141,12 +123,12 @@ for date in datelist:
             staging_step_4 += " and control = 'ok'"
             staging_step_4 += " and secuencia not in (2,3);"
             cursor.execute(staging_step_4)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones operativas')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones operativas')
 
             paso = 6
             staging_step_5 = "drop table if exists Staging.tmp_relacion_tarjeta;"
             cursor.execute(staging_step_5)
-            logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'Limpia tabla temporal de relaciones cuenta y tarjeta')
+            cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'Limpia tabla temporal de relaciones cuenta y tarjeta')
            
             paso = 7
             staging_step_6 = "create table Staging.tmp_relacion_tarjeta"
@@ -156,7 +138,7 @@ for date in datelist:
             staging_step_6 += " and control = 'ok'"
             staging_step_6 += " group by producto, num_credito, num_cliente, num_tdc;"
             cursor.execute(staging_step_6)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Respalda relacion cuenta y tarjeta')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Respalda relacion cuenta y tarjeta')
 
             paso = 8
             cursor.execute('truncate table Staging.tmp_dups_tdc')
@@ -165,7 +147,7 @@ for date in datelist:
             staging_step_7 += " group by num_tdc "
             staging_step_7 += " having count(*) > 1;"
             cursor.execute(staging_step_7)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Identifica casos duplicados para analisis')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Identifica casos duplicados para analisis')
 
             paso = 9
             staging_step_8 = "insert into Cuentas_tc.Relacion_dups_tarjeta "
@@ -174,14 +156,14 @@ for date in datelist:
             staging_step_8 += " where a.num_tdc = b.num_tdc"
             staging_step_8 += " group by producto, num_credito, num_cliente, a.num_tdc;"
             cursor.execute(staging_step_8)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Respalda casos duplicados para analisis')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Respalda casos duplicados para analisis')
 
             paso = 10
             staging_step_9 = "insert into Cuentas_tc.Relacion_tarjeta select * "
             staging_step_9 += " from Staging.tmp_relacion_tarjeta b"
             staging_step_9 += " on duplicate key update  last_known = b.last_known;"
             cursor.execute(staging_step_9)
-            logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Integra relacion diaria al historico')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Integra relacion diaria al historico')
 
             print('Proceso de carga terminado: ' + filename)
 
