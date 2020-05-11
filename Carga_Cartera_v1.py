@@ -25,20 +25,18 @@ filepattern01 = 'maecred'
 filepattern02 = 'maesdos'
 fileext = ".txt"
 port = 3306
-host = '192.168.0.15'
-user = 'root'
-password = 'Alb3rt-31nstein'
-#host= '10.26.211.46'
-#user= 'analitics'
-#password= '2017YdwVCs51may2'
-#user= 'c97635723'
-#password= '9AJG7ae4gAE3av4a'
 staging_table1 = 'tmp_maecred'
 staging_table2 = 'tmp_maesdos'
 table = 'Cuentas_tc.Cartera'
 pasos_proceso = 6
 proceso = 'Carga Cartera'
 
+#carga configuracion
+exec(open("config.py").read())
+user = config['Database_Config']['usuario']
+password = config['Database_Config']['contrasena'] 
+host = config['Database_Config']['servidor'] 
+port = config['Database_Config']['puerto']
 
 for r, d, f in os.walk(path):
     for file in f:

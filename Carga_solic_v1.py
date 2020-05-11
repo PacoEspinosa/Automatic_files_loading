@@ -26,20 +26,17 @@ warnings.simplefilter('error', UserWarning)
 #Constantes
 filepattern = 'solic'
 fileext = ""
-#host = '192.168.0.28'
-port = 3306
-#user = 'root'
-#password = 'Alb3rt-31nstein'
-host= '10.26.211.46'
-#user= 'analitics'
-#password= '2017YdwVCs51may2'
-user= 'c97635723'
-password= '9AJG7ae4gAE3av4a'
 staging_table = 'tmp_solicitudes'
 table = 'Solicitudes.Solicitudes_2017'
 pasos_proceso = 7
 proceso = 'Carga Solicitudes'
 
+#carga configuracion
+exec(open("config.py").read())
+user = config['Database_Config']['usuario']
+password = config['Database_Config']['contrasena'] 
+host = config['Database_Config']['servidor'] 
+port = config['Database_Config']['puerto']
 
 for r, d, f in os.walk(path):
     for file in f:

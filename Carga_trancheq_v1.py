@@ -26,20 +26,17 @@ warnings.simplefilter('error', UserWarning)
 #Constantes
 filepattern = 'trancheq'
 fileext = ".txt"
-#host = '192.168.0.28'
-port = 3306
-#user = 'root'
-#password = 'Alb3rt-31nstein'
-host= '10.26.211.46'
-#user= 'analitics'
-#password= '2017YdwVCs51may2'
-user= 'c97635723'
-password= '9AJG7ae4gAE3av4a'
 staging_table = 'tmptrancheq'
 table = 'Transaccional.Trancheq_2020'
 pasos_proceso = 3
 proceso = 'Carga trancheq'
 
+#carga configuracion
+exec(open("config.py").read())
+user = config['Database_Config']['usuario']
+password = config['Database_Config']['contrasena'] 
+host = config['Database_Config']['servidor'] 
+port = config['Database_Config']['puerto']
 
 for r, d, f in os.walk(path):
     for file in f:
