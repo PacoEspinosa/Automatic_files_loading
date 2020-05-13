@@ -17,7 +17,7 @@ import Complement_functions as cf
 path = os.getcwd() #obtiene el directorio de trabajo actual
 files = []
 
-warnings.simplefilter('error', UserWarning)
+warnings.simplefilter('ignore')
 
 #funciones
 

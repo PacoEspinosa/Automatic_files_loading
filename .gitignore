@@ -26,3 +26,5 @@ config.info2
 movs_aut_201912c.txt.gz
 movs_aut_201912a.txt.gz
 movs_noaut_201912.txt.gz
+Cuentas_con_email.dat
+*.dat
