@@ -24,11 +24,10 @@ warnings.simplefilter('ignore')
 filepattern01 = 'maecred'
 filepattern02 = 'maesdos'
 fileext = "_reestructura.txt"
-port = 3306
 staging_table1 = 'tmp_maecred'
 staging_table2 = 'tmp_maesdos'
 table = 'Cuentas_tc.Cartera_PP'
-pasos_proceso = 6
+pasos_proceso = 4
 proceso = 'Carga Cartera PP'
 
 #carga configuracion
