@@ -48,7 +48,7 @@ filename = filename1 + '-' + fecha_seguimiento
 
 if filename1 in files:
  
-    try:
+    try: 
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
@@ -63,7 +63,7 @@ if filename1 in files:
             paso = 1    
             cursor.execute('truncate table Staging.' + staging_table + ';')
             load_sql = "load data local infile '" + filename1 + "' into table Staging." + staging_table
-            load_sql += " fields terminated by '|' escaped by '' "
+            load_sql += " fields terminated by '\t' escaped by '' "
             load_sql += " lines terminated by '\n'"
             load_sql += " ignore 1 lines;"
             #print(filename)
