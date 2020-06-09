@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec  2 23:34:44 2019
+subject: Proceso de carga historica, donde se conoce las fechas disponibles
+ y los archivos a cargar se encuentran en una carpeta especifica.
+@author: francisco
+"""
+
+import os
+import pymysql
+import warnings
+import datetime
+import Complement_functions as cf
+
+#Variables
+path = os.getcwd() #obtiene el directorio de trabajo actual
+files = []
+
+warnings.simplefilter('ignore')
+
+#funciones
+    
+
+#Constantes
+filepattern = 'OutBehavioral_'
+fileext = ".txt"
+staging_table = 'tmpbehavioral'
+table = 'Cuentas_tc.OutBehavioral'
+pasos_proceso = 3
+proceso = 'Carga calificacion de comportamiento'
+fecha_seguimiento = datetime.datetime.today().strftime("%Y-%m-%d")
+
+#carga configuracion
+exec(open("config.py").read())
+user = config['Database_Config']['usuario']
+password = config['Database_Config']['contrasena'] 
+host = config['Database_Config']['servidor'] 
+port = config['Database_Config']['puerto']
+
+for r, d, f in os.walk(path):
+    for file in f:
+        files.append(file)
+
+filename = filepattern + '31' + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%m%Y") + fileext
+if filename in files:
+   
+    try:
+        paso = 0
+        con = pymysql.connect(host = host, 
+                          user = user, 
+                          password = password, 
+                          port = port,
+                          autocommit=True,
+                          local_infile=1)
+        cursor = con.cursor()
+        if cf.Validacion_archivo(cursor, filename):
+            print('Archivo previamente cargado: ' + filename)
+            con.close()
+        else:
+            paso = 1
+            load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
+            load_sql += " fields terminated by '|' escaped by '' "
+            load_sql += " lines terminated by '\n'"
+            load_sql += " ;"
+            #print(filename)
+            cursor.execute('truncate table Staging.' + staging_table + ';')
+            cursor.execute(load_sql)
+            cf.logging_carga(cursor, filename, staging_table)
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Importa archivo OutBehavioral')
+    #Staging
+            paso = 2
+            staging_step_2a = " truncate table " + table + ";"
+            cursor.execute(staging_step_2a)
+            staging_step_2b = "insert into " + table 
+            staging_step_2b += " select substr(registro,4,12) as num_credito, trim(substr(registro,31,12)) as designacion,"
+            staging_step_2b += " abs(substr(registro,43,5)) as calificacion, trim(substr(registro,55,9)) as riesgo"
+            staging_step_2b += " from Staging." + staging_table + ";"
+            cursor.execute(staging_step_2b)
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'inserta registros actuales')
+    
+           
+            print('Proceso de carga terminado: ' + filename)
+    
+            con.close()
+        
+    except Exception as e:
+        print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
+else:
+    print('No se localizó el archivo: ' + filename)
