@@ -48,6 +48,7 @@ filename = filename1 + " / " + filename2
 if filename1 in files and filename2 in files:
     #print(filename1, " / ", filename2)
     try:
+        paso = 0
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
