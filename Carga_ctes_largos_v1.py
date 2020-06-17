@@ -111,7 +111,7 @@ if filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla del mes')
     
             paso = 3
-            staging_step_3 = "insert into " + historic_table + " select " + fec_seguimiento + ","
+            staging_step_3 = "insert into " + historic_table + " select '" + fec_seguimiento + "' ,"
             staging_step_3 += " num_cliente,"
             staging_step_3 += " num_cuenta,"
             staging_step_3 += " nombre1,"
