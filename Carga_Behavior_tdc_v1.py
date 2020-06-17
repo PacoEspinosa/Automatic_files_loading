@@ -30,6 +30,7 @@ table = 'Cuentas_tc.OutBehavioral'
 pasos_proceso = 3
 proceso = 'Carga calificacion de comportamiento'
 fecha_seguimiento = datetime.datetime.today().strftime("%Y-%m-%d")
+dias_mes = '31'
 
 #carga configuracion
 exec(open("config.py").read())
@@ -41,8 +42,17 @@ port = config['Database_Config']['puerto']
 for r, d, f in os.walk(path):
     for file in f:
         files.append(file)
+        
+"""
+if (datetime.datetime.today() - datetime.timedelta(50)).strftime("%m") in ('01','03','05','',''):
+    dias_mes = '31'
+elif (datetime.datetime.today() - datetime.timedelta(50)).strftime("%m") = '02':
+    dias_mes = '28'
+else:
+    dias_mes = '30'
+"""
 
-filename = filepattern + '31' + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%m%Y") + fileext
+filename = filepattern + dias_mes + (datetime.datetime.today() - datetime.timedelta(50)).strftime("%m%Y") + fileext
 if filename in files:
    
     try:
