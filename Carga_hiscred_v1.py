@@ -23,7 +23,7 @@ warnings.simplefilter('ignore')
 
 #Constantes
 date1 = '2020-01-01'  
-date2 = '2020-06-30'
+date2 = '2020-07-30'
 transact_table = 'Transacciones_TDC_2020'
 operative_table = 'Operativas'
 filepattern = 'his_credito'
