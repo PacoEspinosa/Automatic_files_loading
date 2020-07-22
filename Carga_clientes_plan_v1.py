@@ -24,14 +24,24 @@ warnings.simplefilter('ignore')
 
     
 #Constantes
-filepattern = 'Reporte_P_Flexible_'
-fileext = ".txt"
-staging_table = 'tmp_rep_flexible'
-table = 'Cuentas_tc.Rep_flexible'
-historic_table = 'Historicos.Rep_flexible'
-pasos_proceso = 4
-proceso = 'Carga reporte flexible'
-
+file = 'tdc'
+if file == 'tdc':
+    filepattern = 'ctes_prog_apoyo2020_'
+    fileext = ".csv"
+    staging_table = 'tmp_clientes_plan_apoyo'
+    table = 'Cuentas_tc.Clientes_plan_apoyo'
+    historic_table = ''
+    pasos_proceso = 4
+    proceso = 'Carga clientes en plan tdc'
+else:
+    filepattern = 'ctes_prog_apoyo2020crd_'
+    fileext = ".csv"
+    staging_table = 'tmp_clientes_plan_apoyocrd'
+    table = 'Cuentas_tc.Clientes_plan_apoyocrd'
+    historic_table = ''
+    pasos_proceso = 4
+    proceso = 'Carga clientes en plan pp'
+    
 #carga configuracion
 exec(open("config.py").read())
 user = config['Database_Config']['usuario']
@@ -43,7 +53,7 @@ for r, d, f in os.walk(path):
     for file in f:
         files.append(file)
 
-filename = filepattern + datetime.datetime.today().strftime("%d%m%Y") + fileext
+filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
 if filename in files:
    
     try:
@@ -63,53 +73,41 @@ if filename in files:
             
             paso = 1
             load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
-            load_sql += " fields terminated by '|' escaped by '' "
+            load_sql += " fields terminated by ',' escaped by '' "
             load_sql += " lines terminated by '\n'"
-            load_sql += " ignore 1 lines;"
+            load_sql += ";"
             #print(filename)
             cursor.execute('truncate table Staging.' + staging_table + ';')
             cursor.execute(load_sql)
             cf.logging_carga(cursor, filename, staging_table)
-            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo clientes plan')
     #Staging
             paso = 2
-            staging_step_1a = "update Staging." + staging_table + " Set fecha_disp = concat(substr(fecha_disp,7,4), '-', substr(fecha_disp,4,2), '-', substr(fecha_disp,1,2))"
-            staging_step_1a += ", control = 'ok'"
-            staging_step_1a += "where length(fecha_disp) = 10;"
-            cursor.execute(staging_step_1a)
-            staging_step_1b = "update Staging." + staging_table + " Set fecha_ult_pago = concat(substr(fecha_ult_pago,7,4), '-', substr(fecha_ult_pago,4,2), '-', substr(fecha_ult_pago,1,2))"
-            staging_step_1b += ", control = 'ok'"
-            staging_step_1b += "where length(fecha_ult_pago) = 10;"
-            cursor.execute(staging_step_1b)
-            staging_step_1c = "update Staging." + staging_table + " Set fecha_apertura = concat(substr(fecha_apertura,7,4), '-', substr(fecha_apertura,4,2), '-', substr(fecha_apertura,1,2))"
-            staging_step_1c += ", control = 'ok'"
-            staging_step_1c += "where length(fecha_apertura) = 10;"
-            cursor.execute(staging_step_1c)
+            staging_step_2a = "update Staging." + staging_table + " Set fecha_apoyo = concat(substr(fecha_apoyo,7,4), '-', substr(fecha_apoyo,4,2), '-', substr(fecha_apoyo,1,2))"
+            staging_step_2a += ", control = 'ok'"
+            staging_step_2a += "where length(fecha_apoyo) = 10;"
+            cursor.execute(staging_step_2a)
+            staging_step_2b = "update Staging." + staging_table + " Set fecha_ins = concat(substr(fecha_ins,7,4), '-', substr(fecha_ins,4,2), '-', substr(fecha_ins,1,2))"
+            staging_step_2b += ", control = 'ok'"
+            staging_step_2b += "where length(fecha_ins) = 10;"
+            cursor.execute(staging_step_2b)
+            staging_step_2c = "update Staging." + staging_table + " Set fecha_apertura = concat(substr(fecha_apertura,7,4), '-', substr(fecha_apertura,4,2), '-', substr(fecha_apertura,1,2))"
+            staging_step_2c += ", control = 'ok'"
+            staging_step_2c += "where length(fecha_apertura) = 10;"
+            cursor.execute(staging_step_2c)
+            staging_step_2d = "update Staging." + staging_table + " Set fecha_ultimo_pago = concat(substr(fecha_ultimo_pago,7,4), '-', substr(fecha_ultimo_pago,4,2), '-', substr(fecha_ultimo_pago,1,2))"
+            staging_step_2d += ", control = 'ok'"
+            staging_step_2d += "where length(fecha_ultimo_pago) = 10;"
+            cursor.execute(staging_step_2d)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
     
             paso = 3
-            staging_step_2a = "truncate Cuentas_tc.Rep_flexible;"
-            cursor.execute(staging_step_2a)
-            staging_step_2b = "insert into Cuentas_tc.Rep_flexible select num_credito,"
-            staging_step_2b += " num_disposición,"
-            staging_step_2b += " num_cliente,"
-            staging_step_2b += " suc,"
-            staging_step_2b += " nombre_suc,"
-            staging_step_2b += " monto_disp,"
-            staging_step_2b += " fecha_disp,"
-            staging_step_2b += " plazo,"
-            staging_step_2b += " fecha_ult_pago,"
-            staging_step_2b += " estatus_credito,"
-            staging_step_2b += " saldo_insoluto,"
-            staging_step_2b += " capital_vigente,"
-            staging_step_2b += " capital_transitorio,"
-            staging_step_2b += " capital_vencido,"
-            staging_step_2b += " meses_vencido,"
-            staging_step_2b += " fecha_apertura,"
-            staging_step_2b += " linea_credito"
-            staging_step_2b += " from Staging.tmp_rep_flexible"
-    #        staging_step_2b += " where control = 'ok';"
-            cursor.execute(staging_step_2b)
+            staging_step_3a = "truncate " + table + ";"
+            cursor.execute(staging_step_3a)
+            staging_step_3b = "insert into " + table + " select * "
+            staging_step_3b += " from Staging." + staging_table
+            staging_step_3b += ";"
+            cursor.execute(staging_step_3b)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla del mes')
     
             paso = 4
