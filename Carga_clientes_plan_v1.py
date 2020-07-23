@@ -10,8 +10,6 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
 import os
 import pymysql
 import warnings
-import datetime
-import sys
 import Complement_functions as cf
 
 #Variables
@@ -24,7 +22,7 @@ warnings.simplefilter('ignore')
 
     
 #Constantes
-file = 'tdc'
+file = 'PP'
 if file == 'tdc':
     filepattern = 'ctes_prog_apoyo2020_'
     fileext = ".csv"
@@ -53,24 +51,24 @@ for r, d, f in os.walk(path):
     for file in f:
         files.append(file)
 
-filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
+filename = filepattern + '20200717' + fileext
+#filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
 if filename in files:
    
     try:
         paso = 0
+        con = pymysql.connect(host = host, 
+                          user = user, 
+                          password = password, 
+                          port = port,
+                          autocommit=True,
+                          local_infile=1)
+        cursor = con.cursor()
         if cf.Validacion_archivo(cursor, filename):
             print('Archivo previamente cargado: ' + filename)
-            con.close()
         
         else:
-            con = pymysql.connect(host = host, 
-                              user = user, 
-                              password = password, 
-                              port = port,
-                              autocommit=True,
-                              local_infile=1)
-            cursor = con.cursor()
-            
+           
             paso = 1
             load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
             load_sql += " fields terminated by ',' escaped by '' "
@@ -111,6 +109,7 @@ if filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla del mes')
     
             paso = 4
+            """
             staging_step_3 = "insert into Historicos.Rep_flexible select " + datetime.datetime.today().strftime("%Y-%m-%d") + ","
             staging_step_3 += " num_credito,"
             staging_step_3 += " num_disposición,"
@@ -132,7 +131,7 @@ if filename in files:
             staging_step_3 += " from Cuentas_tc.Rep_flexible;"
             cursor.execute(staging_step_3)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla historica')
-    
+            """    
             print('Proceso de carga terminado: ' + filename)
     
             con.close()

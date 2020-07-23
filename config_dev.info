@@ -1,0 +1,26 @@
+{"Database_Config": 
+{"usuario": "root",  
+"servidor": "192.168.0.18", 
+"puerto": 3306, 
+"contrasena": "Alb3rt-31nstein"
+}, 
+"File_Path": 
+{"model_back": "/home/StatModel/models/bck", 
+"working_model": "RandomForestClassifier", 
+"model_path": "/home/StatModel/models/"
+}, 
+"WebService": 
+{"ws_servidor": "localhost", 
+"ws_puerto": 8080
+}, 
+"Sampling": {
+"calibracion": 100, 
+"calificacion": 100
+},
+"DB_Utilities":{
+"sp_create_training": "Refresh_Data4Training",
+"sp_create_universe": "Refresh_Data4Score",
+"sp_reset_score": "Refresh_Score", 
+"score_updating_batch_size": 10000
+}
+}
