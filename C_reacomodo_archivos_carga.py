@@ -9,14 +9,14 @@ import pandas as pd
 import warnings
 
 #path = os.getcwd() #obtiene el directorio de trabajo actual
-path = 'H:\\hiscred\\2018'
+path = 'H:\\hiscred\\test'
 files = []
 
 warnings.simplefilter('ignore')
 
-date1 = '2018-01-01'  
-date2 = '2018-12-31'
-filepattern = 'hiscred'
+date1 = '2019-01-01'  
+date2 = '2019-12-31'
+filepattern = 'his_credito'
 datepattern = "%m%d%Y"
 fileext = ".gz"
 
@@ -26,12 +26,16 @@ for r, d, f in os.walk(path):
 
 datelist = pd.date_range(date1,date2).tolist()
 
+#crea subdirectorio destino
+os.mkdir(path + '\\' + date1[0:4])
+
 files_list = open(r"MyFile2.txt","w+") 
 for date in datelist:
     filename = filepattern + date.strftime(datepattern) + fileext
     if filename in files:
         files_list.write('Proceso de carga terminado: ' + filename + "\r\n")
         print('Proceso de carga terminado: ' + filename)
+        os.rename(path + '\\' + filename,path + '\\' + date1[0:4] + '\\' + filename)
     else:
         files_list.write('No se localizó el archivo: ' + filename + "\r\n")
         print('No se localizó el archivo: ' + filename)

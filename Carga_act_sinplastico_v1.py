@@ -6,7 +6,7 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
  y los archivos a cargar se encuentran en una carpeta especifica.
 @author: francisco
 """
-
+#Librerias
 import os
 import pymysql
 import warnings
