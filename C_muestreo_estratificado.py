@@ -205,6 +205,8 @@ cursor = con.cursor()
 sql_text = 'Select * from Campania_TDC_Clasica.Campania_TNP where status is null;'
 partition = pd.read_sql(sql_text, con)
 
+stratified_sample_report(partition, ['behavior','Categoria_1'], 10000)
+
 df = stratified_sample(partition, ['behavior','Categoria_1'], 10000)
 
 df.to_csv(r'campaña_tnp.csv')
