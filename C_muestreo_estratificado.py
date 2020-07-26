@@ -205,8 +205,14 @@ cursor = con.cursor()
 sql_text = 'Select * from Campania_TDC_Clasica.Campania_TNP where status is null;'
 partition = pd.read_sql(sql_text, con)
 
-stratified_sample_report(partition, ['behavior','Categoria_1'], 10000)
+stratified_sample_report(partition, ['behavior','Categoria_1'], 11045)
 
-df = stratified_sample(partition, ['behavior','Categoria_1'], 10000)
+df = stratified_sample(partition, ['behavior','Categoria_1'], 11045)
 
 df.to_csv(r'campaña_tnp.csv')
+
+#df.to_sql('campaña_tnp_testigo', con = con, schema = 'Campania_TDC_Clasica', if_exists = 'append', chunksize = 1000)
+
+for i, row in df.iterrows():
+    sql = "update Campania_TDC_Clasica.Campania_TNP set status = 'sample_testigo' where num_credito = '" + row[2] + "';"
+    cursor.execute(sql)
