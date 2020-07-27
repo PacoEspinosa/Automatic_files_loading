@@ -8,6 +8,7 @@ Created on Wed Jul 22 13:09:21 2020
 import pandas as pd
 import warnings
 import pymysql
+from sqlalchemy import create_engine
 
 #Variables
 #path = os.getcwd() #obtiene el directorio de trabajo actual
@@ -202,17 +203,28 @@ con = pymysql.connect(host = host,
                   local_infile=1)
 cursor = con.cursor()
 
+# create sqlalchemy engine
+engine = create_engine("mysql+pymysql://{user}:{pw}@{host}/{db}"
+                       .format(user=user,
+                               pw=password,
+                               host = host,
+                               db="Campania_TDC_Clasica"))
+
 sql_text = 'Select * from Campania_TDC_Clasica.Campania_TNP where status is null;'
-partition = pd.read_sql(sql_text, con)
+partition = pd.read_sql(sql_text, engine)
+size_sample = round(len(partition) * .05,0)
+#stratified_sample_report(partition, ['behavior','Categoria_1'], 11045)
 
-stratified_sample_report(partition, ['behavior','Categoria_1'], 11045)
-
-df = stratified_sample(partition, ['behavior','Categoria_1'], 11045)
+df = stratified_sample(partition, ['behavior','Categoria_1'], size_sample)
 
 df.to_csv(r'campaña_tnp.csv')
 
 #df.to_sql('campaña_tnp_testigo', con = con, schema = 'Campania_TDC_Clasica', if_exists = 'append', chunksize = 1000)
 
-for i, row in df.iterrows():
-    sql = "update Campania_TDC_Clasica.Campania_TNP set status = 'sample_testigo' where num_credito = '" + row[2] + "';"
-    cursor.execute(sql)
+df.to_sql('sample_testigo', con = engine, if_exists = 'replace', chunksize = 1000)
+
+sql = "update Campania_TDC_Clasica.Campania_TNP a, Campania_TDC_Clasica.sample_testigo b"
+sql += " set a.status = 'sample_testigo'"
+sql += " where a.num_credito = b.num_credito"
+sql += " and a.status is null;"
+cursor.execute(sql)
