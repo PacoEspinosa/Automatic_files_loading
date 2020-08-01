@@ -212,7 +212,7 @@ engine = create_engine("mysql+pymysql://{user}:{pw}@{host}/{db}"
 
 sql_text = 'Select * from Campania_TDC_Clasica.Campania_TNP where status is null;'
 partition = pd.read_sql(sql_text, engine)
-size_sample = round(len(partition) * .05,0)
+size_sample = round(len(partition) * 0.05,0)
 #stratified_sample_report(partition, ['behavior','Categoria_1'], 11045)
 
 df = stratified_sample(partition, ['behavior','Categoria_1'], size_sample)

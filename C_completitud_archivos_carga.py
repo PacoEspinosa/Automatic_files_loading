@@ -9,14 +9,14 @@ import pandas as pd
 import warnings
 
 #path = os.getcwd() #obtiene el directorio de trabajo actual
-path = 'H:\\hiscred\\2018'
+path = 'E:\\hiscred\\2018'
 files = []
 
 warnings.simplefilter('ignore')
 
 date1 = '2018-01-01'  
 date2 = '2018-12-31'
-filepattern = 'hiscred'
+filepattern = 'his_credito'
 datepattern = "%m%d%Y"
 fileext = ".gz"
 

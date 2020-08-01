@@ -48,19 +48,18 @@ if filename in files:
    
     try:
         paso = 0
+        con = pymysql.connect(host = host, 
+                          user = user, 
+                          password = password, 
+                          port = port,
+                          autocommit=True,
+                          local_infile=1)
+        cursor = con.cursor()
         if cf.Validacion_archivo(cursor, filename):
             print('Archivo previamente cargado: ' + filename)
             con.close()
         
         else:
-            con = pymysql.connect(host = host, 
-                              user = user, 
-                              password = password, 
-                              port = port,
-                              autocommit=True,
-                              local_infile=1)
-            cursor = con.cursor()
-            
             paso = 1
             load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
             load_sql += " fields terminated by '|' escaped by '' "
