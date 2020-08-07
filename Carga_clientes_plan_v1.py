@@ -22,7 +22,7 @@ warnings.simplefilter('ignore')
 
     
 #Constantes
-file = 'PP'
+file = 'tdc'
 if file == 'tdc':
     filepattern = 'ctes_prog_apoyo2020_'
     fileext = ".csv"
@@ -51,7 +51,7 @@ for r, d, f in os.walk(path):
     for file in f:
         files.append(file)
 
-filename = filepattern + '20200717' + fileext
+filename = filepattern + '20200801' + fileext
 #filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
 if filename in files:
    
