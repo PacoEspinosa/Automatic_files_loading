@@ -54,10 +54,10 @@ if filename1 in files and filename2 in files and filename3 in files and filename
     #print(filename1, " / ", filename2)
     try:
         paso = 0
-        con = pymysql.connect(host = host, 
-                          user = user, 
-                          password = password, 
-                          port = port,
+        con = pymysql.connect(host=host, 
+                          user=user, 
+                          password=password, 
+                          port=port,
                           autocommit=True,
                           local_infile=1)
         cursor = con.cursor()
