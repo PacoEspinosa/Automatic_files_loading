@@ -51,7 +51,7 @@ for r, d, f in os.walk(path):
     for file in f:
         files.append(file)
 
-filename = filepattern + '20200801' + fileext
+filename = filepattern + '20200807' + fileext
 #filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
 if filename in files:
    
