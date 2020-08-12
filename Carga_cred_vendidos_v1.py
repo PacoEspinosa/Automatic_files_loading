@@ -38,14 +38,12 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-for r, d, f in os.walk(path):
-    for file in f:
-        files.append(file)
+files = cf.listado_archivos(path, filepattern)
 
-filename = filepattern + '05' + datetime.datetime.today().strftime("%m%Y") + fileext
-if filename in files:
-   
+#filename = filepattern + '05' + datetime.datetime.today().strftime("%m%Y") + fileext
+for filename in files:
     try:
+        paso = 0
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
@@ -100,5 +98,6 @@ if filename in files:
         
     except Exception as e:
         print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
-else:
-    print('No se localizó el archivo: ' + filename)
+
+if files == []:
+    print('No se localizaron archivos de carga')

@@ -11,6 +11,7 @@ import os
 import pymysql
 import warnings
 import datetime
+import fnmatch
 import Complement_functions as cf
 
 #Variables
@@ -37,8 +38,9 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-for r, d, f in os.walk(path):
-    for file in f:
+for file in os.listdir(path):
+    if fnmatch.fnmatch(file, (filepattern01 + '*')) or fnmatch.fnmatch(file, (filepattern02 + '*')):
+        #print(file)
         files.append(file)
 
 filename1 = filepattern01 + '_' + cf.Nombre_mes((datetime.datetime.today() - datetime.timedelta(28)).strftime("%m")) + '_' + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y") + fileext
@@ -48,8 +50,7 @@ filename = filename1 + " / " + filename2
 if filename1 in files and filename2 in files:
     #print(filename1, " / ", filename2)
     try:
-        paso = 1
-
+        paso = 0
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
@@ -61,6 +62,7 @@ if filename1 in files and filename2 in files:
             print('Archivo previamente cargado: ' + filename)
             con.close()
         else:
+            paso = 1
             staging_step_1a = "RENAME TABLE Cuentas_tc.Cartera TO Cuentas_tc.Cartera_" + (datetime.datetime.today() - datetime.timedelta(56)).strftime("%Y%m")
             cursor.execute(staging_step_1a)
             staging_step_1b = "CREATE TABLE if not exists Cuentas_tc.Cartera ( "

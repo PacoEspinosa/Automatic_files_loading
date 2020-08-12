@@ -8,7 +8,6 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
 """
 
 import os
-import pandas as pd
 import pymysql
 import warnings
 import Complement_functions as cf
@@ -22,15 +21,13 @@ warnings.simplefilter('ignore')
 #funciones
 
 #Constantes
-date1 = '2020-01-01'  
-date2 = '2020-03-30'
 transact_table = 'Transacciones_TDC_2020'
 operative_table = 'Operativas'
 filepattern = 'Hiscred_Oro'
 fileext = ".txt"
 table = 'tmphiscred'
 pasos_proceso = 10
-proceso = 'Carga transacciones'
+proceso = 'Carga transacciones oro'
 
 #carga configuracion
 exec(open("config.py").read())
@@ -39,34 +36,26 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-for r, d, f in os.walk(path):
-    for file in f:
-        files.append(file)
-
-datelist = pd.date_range(date1,date2).tolist()
-
-for date in datelist:
-    filename = filepattern + date.strftime("%m%d%Y") + fileext
-    if filename in files:
-        load_sql = "load data local infile '" + filename + "' into table Staging." + table
-        load_sql += " fields terminated by '|' escaped by '' "
-        load_sql += " lines terminated by '\n';"
-        #print(filename)
-       
-        try:
+files = cf.listado_archivos(path, filepattern)
+#filename = filepattern + date.strftime("%m%d%Y") + fileext
+for filename in files:
+    try:
+        paso = 0
+        con = pymysql.connect(host = host, 
+                          user = user, 
+                          password = password, 
+                          port = port,
+                          autocommit=True,
+                          local_infile=1)
+        cursor = con.cursor()
+        if cf.Validacion_archivo(cursor,filename):
+            print('Archivo previamente cargado: ' + filename)
+            con.close()
+        else:
             paso = 1
-            con = pymysql.connect(host = host, 
-                              user = user, 
-                              password = password, 
-                              port = port,
-                              autocommit=True,
-                              local_infile=1)
-            cursor = con.cursor()
-            if cf.Validacion_archivo(cursor,filename):
-                print('Archivo previamente cargado: ' + filename)
-                con.close()
-                continue
-
+            load_sql = "load data local infile '" + filename + "' into table Staging." + table
+            load_sql += " fields terminated by '|' escaped by '' "
+            load_sql += " lines terminated by '\n';"
             cursor.execute("truncate table Staging." + table + ';')
             cursor.execute(load_sql)
             cf.logging_carga(cursor, filename, table)
@@ -166,8 +155,9 @@ for date in datelist:
 
             con.close()
             
-        except Exception as e:
-            print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
-    else:
-        print('No se localizó el archivo: ' + filename)
+    except Exception as e:
+        print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
+
+if files == []:
+    print('No se localizaron archivos de carga')
     

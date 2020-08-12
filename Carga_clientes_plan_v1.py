@@ -47,13 +47,9 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-for r, d, f in os.walk(path):
-    for file in f:
-        files.append(file)
-
-filename = filepattern + '20200807' + fileext
+files = cf.listado_archivos(path, filepattern)
 #filename = filepattern + datetime.datetime.today().strftime("%Y%m%d") + fileext
-if filename in files:
+for filename in files:
    
     try:
         paso = 0
@@ -66,9 +62,8 @@ if filename in files:
         cursor = con.cursor()
         if cf.Validacion_archivo(cursor, filename):
             print('Archivo previamente cargado: ' + filename)
-        
+            con.close()        
         else:
-           
             paso = 1
             load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
             load_sql += " fields terminated by ',' escaped by '' "
@@ -138,5 +133,6 @@ if filename in files:
         
     except Exception as e:
         print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
-else:
-    print('No se localizó el archivo: ' + filename)
+
+if files == []:
+    print('No se localizaron archivos de carga')

@@ -8,7 +8,6 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
 """
 
 import os
-import pandas as pd
 import pymysql
 import warnings
 import Complement_functions as cf
@@ -22,8 +21,6 @@ warnings.simplefilter('ignore')
 #funciones
 
 #Constantes
-date1 = '2020-07-01'  
-date2 = '2020-08-03'
 transact_table = 'Transacciones_TDC_2020'
 operative_table = 'Operativas'
 filepattern = 'his_credito'
@@ -39,45 +36,37 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-for r, d, f in os.walk(path):
-    for file in f:
-        files.append(file)
-
-datelist = pd.date_range(date1,date2).tolist()
-
-for date in datelist:
-    filename = filepattern + date.strftime("%m%d%Y") + fileext
-    if filename in files:
-        load_sql = "load data local infile '" + filename + "' into table Staging." + table
-        load_sql += " fields terminated by '|' escaped by '' "
-        load_sql += " lines terminated by '\n';"
-        #print(filename)
-       
-        try:
+files = cf.listado_archivos(path, filepattern)
+#filename = filepattern + date.strftime("%m%d%Y") + fileext
+for filename in files:
+    try:
+        paso = 0
+        con = pymysql.connect(host = host, 
+                          user = user, 
+                          password = password, 
+                          port = port,
+                          autocommit=True,
+                          local_infile=1)
+        cursor = con.cursor()
+        if cf.Validacion_archivo(cursor,filename):
+            print('Archivo previamente cargado: ' + filename)
+            con.close()
+        else:
             paso = 1
-            con = pymysql.connect(host = host, 
-                              user = user, 
-                              password = password, 
-                              port = port,
-                              autocommit=True,
-                              local_infile=1)
-            cursor = con.cursor()
-            if cf.Validacion_archivo(cursor,filename):
-                print('Archivo previamente cargado: ' + filename)
-                con.close()
-                continue
-
+            load_sql = "load data local infile '" + filename + "' into table Staging." + table
+            load_sql += " fields terminated by '|' escaped by '' "
+            load_sql += " lines terminated by '\n';"
             cursor.execute("truncate table Staging." + table + ';')
             cursor.execute(load_sql)
             cf.logging_carga(cursor, filename, table)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo transacciones')
-#Staging
+    #Staging
             paso = 2
             staging_step_1 = "update Staging.tmphiscred Set fechaoper = concat(substr(fechaoper,7,4), '-', substr(fechaoper,1,2), '-', substr(fechaoper,4,2)),"
             staging_step_1 += "control = 'ok' where (control = '' or control is null);"
             cursor.execute(staging_step_1)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
-
+    
             paso = 3
             staging_step_2 = "insert into Historicos.Intereses select fechaoper, num_credito, Monto, descripcion, transaccion"
             staging_step_2 += " from Staging." + table
@@ -86,7 +75,7 @@ for date in datelist:
             staging_step_2 += " and secuencia not in (2,3);"
             cursor.execute(staging_step_2)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta en el historico de intereses')
-
+    
             paso = 4
             staging_step_3 = "insert into Transacciones." + transact_table + " (producto, num_credito, num_cliente, sucursal,"
             staging_step_3 += " folio_suc, num_tdc, monto, transaccion, contable, fechaoper)"
@@ -106,7 +95,7 @@ for date in datelist:
             staging_step_3 += " and secuencia not in (2,3);"
             cursor.execute(staging_step_3)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones financieras del dia')
-
+    
             paso = 5
             staging_step_4 = "insert into Transacciones." + operative_table + " (producto, num_credito, num_cliente, sucursal, folio_suc, "
             staging_step_4 += " num_tdc, monto, descripcion, transaccion, fechaoper)"
@@ -122,7 +111,7 @@ for date in datelist:
             staging_step_4 += " and secuencia not in (2,3);"
             cursor.execute(staging_step_4)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones operativas')
-
+    
             paso = 6
             staging_step_5 = "drop table if exists Staging.tmp_relacion_tarjeta;"
             cursor.execute(staging_step_5)
@@ -137,7 +126,7 @@ for date in datelist:
             staging_step_6 += " group by producto, num_credito, num_cliente, num_tdc;"
             cursor.execute(staging_step_6)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Respalda relacion cuenta y tarjeta')
-
+    
             paso = 8
             cursor.execute('truncate table Staging.tmp_dups_tdc')
             staging_step_7 = "insert into Staging.tmp_dups_tdc select num_tdc "
@@ -146,7 +135,7 @@ for date in datelist:
             staging_step_7 += " having count(*) > 1;"
             cursor.execute(staging_step_7)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Identifica casos duplicados para analisis')
-
+    
             paso = 9
             staging_step_8 = "insert into Cuentas_tc.Relacion_dups_tarjeta "
             staging_step_8 += " select producto, num_credito, num_cliente, a.num_tdc, max(fechaoper) as last_known "
@@ -155,20 +144,21 @@ for date in datelist:
             staging_step_8 += " group by producto, num_credito, num_cliente, a.num_tdc;"
             cursor.execute(staging_step_8)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Respalda casos duplicados para analisis')
-
+    
             paso = 10
             staging_step_9 = "insert into Cuentas_tc.Relacion_tarjeta select * "
             staging_step_9 += " from Staging.tmp_relacion_tarjeta b"
             staging_step_9 += " on duplicate key update  last_known = b.last_known;"
             cursor.execute(staging_step_9)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Integra relacion diaria al historico')
-
+    
             print('Proceso de carga terminado: ' + filename)
-
+    
             con.close()
-            
-        except Exception as e:
-            print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
-    else:
-        print('No se localizó el archivo: ' + filename)
+        
+    except Exception as e:
+        print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
+
+if files == []:
+    print('No se localizaron archivos de carga')
     

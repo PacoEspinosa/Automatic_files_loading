@@ -21,7 +21,7 @@ warnings.simplefilter('ignore')
 
 #funciones
 #Constantes
-filepattern01 = 'Cuentas_con_email'
+filepattern = 'Cuentas_con_email'
 fileext = ".dat"
 staging_table1 = 'tmp_email'
 table = 'Datos_generales.email'
@@ -36,16 +36,15 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-for r, d, f in os.walk(path):
-    for file in f:
-        files.append(file)
+files = cf.listado_archivos(path, filepattern)
 
-filename1 = filepattern01 + fileext
-filename = filename1 + '-' + fecha_seguimiento
+#filename1 = filepattern01 + fileext
 
-if filename1 in files:
+for filename1 in files:
+    filename = filename1 + '-' + fecha_seguimiento
     #print(filename1, " / ", filename2)
     try:
+        paso = 0
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
@@ -84,5 +83,6 @@ if filename1 in files:
         
     except Exception as e:
         print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
-else:
-    print('No se localizó el archivo: ' + filename)
+
+if files == []:
+    print('No se localizaron archivos de carga')

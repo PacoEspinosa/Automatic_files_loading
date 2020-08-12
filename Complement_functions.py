@@ -26,6 +26,16 @@ def Validacion_archivo (cursor_con, filename):
     else:
         return False    
 
+def listado_archivos (path, filepattern):
+    import os
+    import fnmatch
+    files = []
+    for file in os.listdir(path):
+        if fnmatch.fnmatch(file, (filepattern + '*')):
+            #print(file)
+            files.append(file)
+    return files
+
 def Nombre_mes (mes):
     switcher = {
         1: "Enero",
