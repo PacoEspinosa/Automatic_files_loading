@@ -78,7 +78,8 @@ for filename in files:
             paso = 3
             staging_step_3a = "Truncate table " + table + ";"
             cursor.execute(staging_step_3a)
-            staging_step_3b = "select num_credito, Num_Cliente, Num_Credisoluciones, Fecha_Contratacion, Sucursal, Nombre_Promocion,"
+            staging_step_3b = "insert into " + table
+            staging_step_3b += " select num_credito, Num_Cliente, Num_Credisoluciones, Fecha_Contratacion, Sucursal, Nombre_Promocion,"
             staging_step_3b += " Tasa, Monto_Contratado, Comision_disposicion, Plazo, Saldo_Insoluto, Capital_Insoluto,"
             staging_step_3b += " Interes_pagar, Iva_Pagar, Estatus_Credisolucion, Motivo, Mensualidades_Pagar,"
             staging_step_3b += " Monto_mensualidad, Intereses_Cargados_Acumulados, Iva_Cargados"
@@ -88,9 +89,10 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros mes actual')
     
             paso = 4
-            staging_step_4 = "insert into " + historic_table + " select Num_Credito, Num_Cliente, Num_credisoluciones, " + fecha_seguimiento + " as Fecha_seguimiento,"
+            staging_step_4 = "insert into " + historic_table 
+            staging_step_4 += " select Num_Credito, Num_Cliente, Num_credisoluciones, " + fecha_seguimiento + " as Fecha_seguimiento,"
             staging_step_4 += " Saldo_Insoluto, Capital_Insoluto, Estatus_Credisolucion, Motivo, Mensualidades_pagar"
-            staging_step_4 += " from Cuentas_tc.Credisolucion;"
+            staging_step_4 += " from Staging." + staging_table + ";"
             cursor.execute(staging_step_4)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros base histórica')
     
