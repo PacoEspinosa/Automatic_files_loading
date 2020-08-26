@@ -11,7 +11,6 @@ import os
 import pymysql
 import warnings
 #import datetime
-import fnmatch
 import Complement_functions as cf
 
 #Variables

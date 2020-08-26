@@ -22,7 +22,7 @@ warnings.simplefilter('ignore')
 
 
 #Constantes
-filepattern = 'Autorizadas_'  #Autorizadas_/Prestamos_
+filepattern = 'Prestamos_'  #Autorizadas_/Prestamos_
 fileext = ".txt"
 familia = 'TDC' if filepattern == 'Autorizadas_' else 'PP'
 staging_table = 'tmp_aut_sin_recoger'

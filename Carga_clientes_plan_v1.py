@@ -22,7 +22,7 @@ warnings.simplefilter('ignore')
 
     
 #Constantes
-file = 'tdc'
+file = 'pp'
 if file == 'tdc':
     filepattern = 'ctes_prog_apoyo2020_'
     fileext = ".csv"
