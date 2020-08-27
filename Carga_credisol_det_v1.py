@@ -1,4 +1,4 @@
-prod#!/usr/bin/env python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
 Created on Mon Dec  2 23:34:44 2019
@@ -31,7 +31,6 @@ historic_table = 'Historicos.Credisolucion'
 general_table = 'Cuentas_tc.Credisolucion_general'
 pasos_proceso = 7
 proceso = 'Carga Credisol'
-fecha_seguimiento = (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y-%m")
 
 #carga configuracion
 exec(open("config.py").read())
@@ -44,6 +43,7 @@ files = cf.listado_archivos(path, filepattern)
 
 #filename = filepattern + '05' + datetime.datetime.today().strftime("%m%Y") + fileext
 for filename in files:
+    fecha_seguimiento = filename[17:21] + '-' + ('0' if filename[15:17]<'10' else '') + str(int(filename[15:17])-1)
     try:
         paso = 0
         con = pymysql.connect(host = host, 
@@ -90,7 +90,7 @@ for filename in files:
     
             paso = 4
             staging_step_4 = "insert into " + historic_table 
-            staging_step_4 += " select Num_Credito, Num_Cliente, Num_credisoluciones, " + fecha_seguimiento + " as Fecha_seguimiento,"
+            staging_step_4 += " select Num_Credito, Num_Cliente, Num_credisoluciones, '" + fecha_seguimiento + "' as Fecha_seguimiento,"
             staging_step_4 += " Saldo_Insoluto, Capital_Insoluto, Estatus_Credisolucion, Motivo, Mensualidades_pagar"
             staging_step_4 += " from Staging." + staging_table + ";"
             cursor.execute(staging_step_4)
@@ -129,7 +129,7 @@ for filename in files:
             paso = 7
             staging_step_7 = "update " + general_table + " a left join Staging." + staging_table + " b"
             staging_step_7 += " on a.num_credisoluciones = b.num_credisoluciones"
-            staging_step_7 += " set a.Fecha_ult_seg = " + fecha_seguimiento
+            staging_step_7 += " set a.Fecha_ult_seg = '" + fecha_seguimiento + "'"
             staging_step_7 += " where b.num_credisoluciones is null"
             staging_step_7 += " and Control  = 'ok';"
             cursor.execute(staging_step_7)
