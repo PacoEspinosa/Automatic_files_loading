@@ -22,7 +22,15 @@ warnings.simplefilter('ignore')
 
 
 #Constantes
-filepattern = 'Prestamos_'  #Autorizadas_/Prestamos_
+filetype = input('selecciona el archivo a cargar (pp/tdc)')
+if filetype == 'pp':
+    filepattern = 'Prestamos_'  #Autorizadas_/Prestamos_
+elif filetype == 'tdc':
+    filepattern = 'Autorizadas_'  #Autorizadas_/Prestamos_
+else:
+    print('Proporciona un tipo de archivo valido')
+    filepattern = '__'
+
 fileext = ".txt"
 familia = 'TDC' if filepattern == 'Autorizadas_' else 'PP'
 staging_table = 'tmp_aut_sin_recoger'

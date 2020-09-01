@@ -22,23 +22,24 @@ warnings.simplefilter('ignore')
 
     
 #Constantes
-file = 'pp'
+file = input('selecciona el archivo a cargar (pp/tdc)')
 if file == 'tdc':
     filepattern = 'ctes_prog_apoyo2020_'
-    fileext = ".csv"
     staging_table = 'tmp_clientes_plan_apoyo'
     table = 'Cuentas_tc.Clientes_plan_apoyo'
-    historic_table = ''
-    pasos_proceso = 4
     proceso = 'Carga clientes en plan tdc'
-else:
+elif file == 'pp':
     filepattern = 'ctes_prog_apoyo2020crd_'
-    fileext = ".csv"
-    staging_table = 'tmp_clientes_plan_apoyocrd'
+    staging_table = 'tmp_ctdclientes_plan_apoyocrd'
     table = 'Cuentas_tc.Clientes_plan_apoyocrd'
-    historic_table = ''
-    pasos_proceso = 4
     proceso = 'Carga clientes en plan pp'
+else:
+    print('Proporciona un tipo de archivo valido')
+    filepattern = '__'
+
+fileext = ".csv"
+historic_table = ''
+pasos_proceso = 4
     
 #carga configuracion
 exec(open("config.py").read())
