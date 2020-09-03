@@ -30,7 +30,7 @@ if file == 'tdc':
     proceso = 'Carga clientes en plan tdc'
 elif file == 'pp':
     filepattern = 'ctes_prog_apoyo2020crd_'
-    staging_table = 'tmp_ctdclientes_plan_apoyocrd'
+    staging_table = 'tmp_clientes_plan_apoyocrd'
     table = 'Cuentas_tc.Clientes_plan_apoyocrd'
     proceso = 'Carga clientes en plan pp'
 else:
