@@ -10,7 +10,6 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
 import os
 import pymysql
 import warnings
-import datetime
 import Complement_functions as cf
 
 #Variables
