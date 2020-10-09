@@ -30,7 +30,7 @@ table = 'Cuentas_tc.OutBehavioral'
 pasos_proceso = 3
 proceso = 'Carga calificacion de comportamiento'
 fecha_seguimiento = datetime.datetime.today().strftime("%Y-%m-%d")
-dias_mes = '31'
+dias_mes = '30'
 
 #carga configuracion
 exec(open("config.py").read())
@@ -80,7 +80,7 @@ for filename in files:
             paso = 2
             staging_step_2a = " truncate table " + table + ";"
             cursor.execute(staging_step_2a)
-            staging_step_2b = "insert into " + table 
+            staging_step_2b = "insert ignore into " + table 
             staging_step_2b += " select substr(registro,4,12) as num_credito, trim(substr(registro,31,12)) as designacion,"
             staging_step_2b += " abs(substr(registro,43,5)) as calificacion, trim(substr(registro,55,9)) as riesgo"
             staging_step_2b += " from Staging." + staging_table + ";"

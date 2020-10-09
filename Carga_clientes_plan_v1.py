@@ -98,7 +98,7 @@ for filename in files:
             paso = 3
             staging_step_3a = "truncate " + table + ";"
             cursor.execute(staging_step_3a)
-            staging_step_3b = "insert into " + table + " select * "
+            staging_step_3b = "insert ignore into " + table + " select * "
             staging_step_3b += " from Staging." + staging_table
             staging_step_3b += ";"
             cursor.execute(staging_step_3b)

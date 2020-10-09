@@ -115,7 +115,7 @@ if filename1 in files and filename2 in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
     
             paso = 4
-            staging_step_4 = "insert into " + table + " (num_credito, num_cliente, producto, sucursal, status_cred, num_vencidos, saldo_fin_mes,"
+            staging_step_4 = "insert ignore into " + table + " (num_credito, num_cliente, producto, sucursal, status_cred, num_vencidos, saldo_fin_mes,"
             staging_step_4 += " fecha_apertura, pago_min_pdo, linea_credito, Categoria_2)"
             staging_step_4 += " select distinctrow a.num_credito,"
             staging_step_4 += " a.num_cte as num_cliente,"

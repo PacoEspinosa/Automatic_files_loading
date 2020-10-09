@@ -119,12 +119,12 @@ if filename1 in files and filename2 in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
     
             paso = 4
-            staging_step_4 = "insert into Historicos.Financieros select * from Staging." + staging_table2 + ";"
+            staging_step_4 = "insert ignore into Historicos.Financieros select * from Staging." + staging_table2 + ";"
             cursor.execute(staging_step_4)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta información financiera en tabla histórica')
     
             paso = 5
-            staging_step_5 = "insert into " + table + " (num_credito, num_cliente, producto, sucursal, status_cred, num_vencidos, saldo_fin_mes,"
+            staging_step_5 = "insert ignore into " + table + " (num_credito, num_cliente, producto, sucursal, status_cred, num_vencidos, saldo_fin_mes,"
             staging_step_5 += " fecha_apertura, pago_min_pdo, linea_credito, Categoria_2)"
             staging_step_5 += " select distinctrow a.num_credito,"
             staging_step_5 += " a.num_cte as num_cliente,"

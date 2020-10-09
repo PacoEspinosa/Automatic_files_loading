@@ -6,13 +6,13 @@ Created on Thu May  7 16:18:11 2020
 """
 
 def logging_carga(cursor_con, filename, staging_table):
-    mysql_log_load = "insert into Operacion_datamart.Importacion "
+    mysql_log_load = "insert ignore into Operacion_datamart.Importacion "
     mysql_log_load += " select curdate() as fecha, '" + filename + "' as nombre_archivo, user() as Usuario, count(*) as Registros, 0 as reproceso from Staging." + staging_table + "; ";
     cursor_con.execute(mysql_log_load)
     
 def logging_proceso(cursor_con, process, total_steps, step, descripcion):
     Etapa = str(step) + "/" + str(total_steps) + ") " + descripcion
-    mysql_log_task = "insert into Operacion_datamart.Logs_procesos (fecha, Proceso, Etapa) "
+    mysql_log_task = "insert ignore into Operacion_datamart.Logs_procesos (fecha, Proceso, Etapa) "
     mysql_log_task += " select now() as fecha, '" + process + "' , '" + Etapa + "';"
     #print(mysql_log_task)
     cursor_con.execute(mysql_log_task)
