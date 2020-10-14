@@ -77,19 +77,19 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo clientes plan')
     #Staging
             paso = 2
-            staging_step_2a = "update Staging." + staging_table + " Set fecha_apoyo = concat(substr(fecha_apoyo,7,4), '-', substr(fecha_apoyo,4,2), '-', substr(fecha_apoyo,1,2))"
+            staging_step_2a = "update Staging." + staging_table + " Set fecha_apoyo = concat(substr(fecha_apoyo,7,4), '-', substr(fecha_apoyo,1,2), '-', substr(fecha_apoyo,4,2))"
             staging_step_2a += ", control = 'ok'"
             staging_step_2a += "where length(fecha_apoyo) = 10;"
             cursor.execute(staging_step_2a)
-            staging_step_2b = "update Staging." + staging_table + " Set fecha_ins = concat(substr(fecha_ins,7,4), '-', substr(fecha_ins,4,2), '-', substr(fecha_ins,1,2))"
+            staging_step_2b = "update Staging." + staging_table + " Set fecha_ins = concat(substr(fecha_ins,7,4), '-', substr(fecha_ins,1,2), '-', substr(fecha_ins,4,2))"
             staging_step_2b += ", control = 'ok'"
             staging_step_2b += "where length(fecha_ins) = 10;"
             cursor.execute(staging_step_2b)
-            staging_step_2c = "update Staging." + staging_table + " Set fecha_apertura = concat(substr(fecha_apertura,7,4), '-', substr(fecha_apertura,4,2), '-', substr(fecha_apertura,1,2))"
+            staging_step_2c = "update Staging." + staging_table + " Set fecha_apertura = concat(substr(fecha_apertura,7,4), '-', substr(fecha_apertura,1,2), '-', substr(fecha_apertura,4,2))"
             staging_step_2c += ", control = 'ok'"
             staging_step_2c += "where length(fecha_apertura) = 10;"
             cursor.execute(staging_step_2c)
-            staging_step_2d = "update Staging." + staging_table + " Set fecha_ultimo_pago = concat(substr(fecha_ultimo_pago,7,4), '-', substr(fecha_ultimo_pago,4,2), '-', substr(fecha_ultimo_pago,1,2))"
+            staging_step_2d = "update Staging." + staging_table + " Set fecha_ultimo_pago = concat(substr(fecha_ultimo_pago,7,4), '-', substr(fecha_ultimo_pago,1,2), '-', substr(fecha_ultimo_pago,4,2))"
             staging_step_2d += ", control = 'ok'"
             staging_step_2d += "where length(fecha_ultimo_pago) = 10;"
             cursor.execute(staging_step_2d)
