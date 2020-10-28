@@ -68,7 +68,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
     
             paso = 3
-            staging_step_2 = "insert into Historicos.Intereses select fechaoper, num_credito, Monto, descripcion, transaccion"
+            staging_step_2 = "insert ignore into Historicos.Intereses select fechaoper, num_credito, Monto, descripcion, transaccion"
             staging_step_2 += " from Staging." + table
             staging_step_2 += " where transaccion in ('6940','4201','6608')"
             staging_step_2 += " and control = 'ok'"
@@ -77,7 +77,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta en el historico de intereses')
     
             paso = 4
-            staging_step_3 = "insert into Transacciones." + transact_table + " (producto, num_credito, num_cliente, sucursal,"
+            staging_step_3 = "insert ignore into Transacciones." + transact_table + " (producto, num_credito, num_cliente, sucursal,"
             staging_step_3 += " folio_suc, num_tdc, monto, transaccion, contable, fechaoper)"
             staging_step_3 += " select producto, num_credito, num_cliente, sucursal,"
             staging_step_3 += " folio_suc, num_tdc, monto, transaccion, contable, fechaoper"
@@ -97,7 +97,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta transacciones financieras del dia')
     
             paso = 5
-            staging_step_4 = "insert into Transacciones." + operative_table + " (producto, num_credito, num_cliente, sucursal, folio_suc, "
+            staging_step_4 = "insert ignore into Transacciones." + operative_table + " (producto, num_credito, num_cliente, sucursal, folio_suc, "
             staging_step_4 += " num_tdc, monto, descripcion, transaccion, fechaoper)"
             staging_step_4 += " select producto, num_credito, num_cliente, sucursal, folio_suc, "
             staging_step_4 += " num_tdc, monto, descripcion, transaccion, fechaoper"
@@ -129,7 +129,7 @@ for filename in files:
     
             paso = 8
             cursor.execute('truncate table Staging.tmp_dups_tdc')
-            staging_step_7 = "insert into Staging.tmp_dups_tdc select num_tdc "
+            staging_step_7 = "insert ignore into Staging.tmp_dups_tdc select num_tdc "
             staging_step_7 += " from Staging.tmp_relacion_tarjeta"
             staging_step_7 += " group by num_tdc "
             staging_step_7 += " having count(*) > 1;"
@@ -137,7 +137,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Identifica casos duplicados para analisis')
     
             paso = 9
-            staging_step_8 = "insert into Cuentas_tc.Relacion_dups_tarjeta "
+            staging_step_8 = "insert ignore into Cuentas_tc.Relacion_dups_tarjeta "
             staging_step_8 += " select producto, num_credito, num_cliente, a.num_tdc, max(fechaoper) as last_known "
             staging_step_8 += " from Staging.tmphiscred a, Staging.tmp_dups_tdc b "
             staging_step_8 += " where a.num_tdc = b.num_tdc"
@@ -146,7 +146,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Respalda casos duplicados para analisis')
     
             paso = 10
-            staging_step_9 = "insert into Cuentas_tc.Relacion_tarjeta select * "
+            staging_step_9 = "insert ignore into Cuentas_tc.Relacion_tarjeta select * "
             staging_step_9 += " from Staging.tmp_relacion_tarjeta b"
             staging_step_9 += " on duplicate key update  last_known = b.last_known;"
             cursor.execute(staging_step_9)
@@ -157,7 +157,7 @@ for filename in files:
             con.close()
         
     except Exception as e:
-        print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
+        print('Error: {}'.format(str(e)) + '; Paso:' + str(paso) + '; Archvo:' + filename)    
 
 if files == []:
     print('No se localizaron archivos de carga')
