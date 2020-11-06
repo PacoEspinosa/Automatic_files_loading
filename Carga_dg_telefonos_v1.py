@@ -118,6 +118,10 @@ for filename1 in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Actualiza_extension')
     
             paso = 8
+            cursor.execute("update Staging.tmp_telefonos_01 set casa = null where casa = '';")
+            cursor.execute("update Staging.tmp_telefonos_01 set celular = null where celular = '';")
+            cursor.execute("update Staging.tmp_telefonos_01 set oficina = null where oficina = '';")
+            cursor.execute("update Staging.tmp_telefonos_01 set otro = null where otro = '';")   
             cursor.execute("update Staging.tmp_telefonos_01 set casa = null where casa = '0000000000';")
             cursor.execute("update Staging.tmp_telefonos_01 set celular = null where celular = '0000000000';")
             cursor.execute("update Staging.tmp_telefonos_01 set celular = null where celular = '00000000000';")
