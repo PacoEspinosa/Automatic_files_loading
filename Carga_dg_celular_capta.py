@@ -23,13 +23,13 @@ warnings.simplefilter('ignore')
     
 
 #Constantes
-filepattern = 'telefonos'
+filepattern = 'celular_capta'
 fileext = ".dat"
-staging_table = 'tmp_telefonos'
-staging_table1 = 'tmp_telefonos_01'
+staging_table = 'tmp_cell_capta'
+staging_table1 = 'tmp_cell_capta_01'
 table = 'Datos_generales.Telefonos'
 pasos_proceso = 9
-proceso = 'Carga telefonos'
+proceso = 'Carga celular capta'
 fecha_seguimiento = datetime.datetime.today().strftime("%Y-%m")
 
 #carga configuracion
@@ -85,6 +85,7 @@ for filename1 in files:
             cursor.execute(staging_step_3b)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza_celular')
     
+            """
             paso = 4
             staging_step_4 = "UPDATE Staging." + staging_table + " a, Staging." + staging_table1 + " b SET b.casa = a.casa "
             staging_step_4 += " WHERE b.num_cliente = a.num_cliente"
@@ -116,31 +117,31 @@ for filename1 in files:
             staging_step_7 += " and b.extension is null;"
             cursor.execute(staging_step_7)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Actualiza_extension')
-    
+            """   
             paso = 8
-            cursor.execute("update Staging." + staging_table1 + " set casa = null where casa = '';")
+#            cursor.execute("update Staging." + staging_table1 + " set casa = null where casa = '';")
             cursor.execute("update Staging." + staging_table1 + " set celular = null where celular = '';")
-            cursor.execute("update Staging." + staging_table1 + " set oficina = null where oficina = '';")
-            cursor.execute("update Staging." + staging_table1 + " set otro = null where otro = '';")   
-            cursor.execute("update Staging." + staging_table1 + " set casa = null where casa = '0000000000';")
+#            cursor.execute("update Staging." + staging_table1 + " set oficina = null where oficina = '';")
+#            cursor.execute("update Staging." + staging_table1 + " set otro = null where otro = '';")   
+#            cursor.execute("update Staging." + staging_table1 + " set casa = null where casa = '0000000000';")
             cursor.execute("update Staging." + staging_table1 + " set celular = null where celular = '0000000000';")
             cursor.execute("update Staging." + staging_table1 + " set celular = null where celular = '00000000000';")
             cursor.execute("update Staging." + staging_table1 + " set celular = null where celular = '000000000000';")
-            cursor.execute("update Staging." + staging_table1 + " set oficina = null where oficina = '0000000000';")
-            cursor.execute("update Staging." + staging_table1 + " set otro = null where otro = '0000000000';")
+#            cursor.execute("update Staging." + staging_table1 + " set oficina = null where oficina = '0000000000';")
+#            cursor.execute("update Staging." + staging_table1 + " set otro = null where otro = '0000000000';")
             cursor.execute("update Staging." + staging_table1 + " set celular = substr(celular,2,10) where length(celular) = 11;")
             cursor.execute("update Staging." + staging_table1 + " set celular = substr(celular,3,10) where length(celular) = 12;")
             cursor.execute("update Staging." + staging_table1 + " set celular = substr(celular,4,10) where length(celular) = 13;")
-            cursor.execute("update Staging." + staging_table1 + " set casa = substr(casa,2) where casa like '0%';")
-            cursor.execute("update Staging." + staging_table1 + " set oficina = substr(oficina,2) where oficina like '0%';")
-            cursor.execute("update Staging." + staging_table1 + " set otro = substr(otro,2) where otro like '0%';")
+#            cursor.execute("update Staging." + staging_table1 + " set casa = substr(casa,2) where casa like '0%';")
+#            cursor.execute("update Staging." + staging_table1 + " set oficina = substr(oficina,2) where oficina like '0%';")
+#            cursor.execute("update Staging." + staging_table1 + " set otro = substr(otro,2) where otro like '0%';")
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Validaciones_varias_numeros')
 
             paso = 9
-            staging_step_9 = "insert ignore into " + table + " (num_cliente, casa, celular, oficina, otro, extension)"
-            staging_step_9 += " select b.num_cliente, b.casa, b.celular, b.oficina, b.otro, b.extension"
+            staging_step_9 = "insert ignore into " + table + " (num_cliente, celular)"
+            staging_step_9 += " select b.num_cliente, b.celular"
             staging_step_9 += " from Staging." + staging_table1 + " b"
-            staging_step_9 += " on duplicate key update casa = b.casa, celular = b.celular, oficina = b.oficina, otro = b.otro, extension = b.extension;"
+            staging_step_9 += " on duplicate key update celular = b.celular;"
             cursor.execute(staging_step_9)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Actualiza_numeros_en_base_general')
 

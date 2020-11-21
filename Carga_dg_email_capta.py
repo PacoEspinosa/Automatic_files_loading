@@ -21,12 +21,12 @@ warnings.simplefilter('ignore')
 
 #funciones
 #Constantes
-filepattern = 'Cuentas_con_email'
+filepattern = 'captacion_con_email'
 fileext = ".dat"
-staging_table1 = 'tmp_email'
+staging_table1 = 'tmp_email_capta'
 table = 'Datos_generales.email'
 pasos_proceso = 3
-proceso = 'Carga correos'
+proceso = 'Carga correos capta'
 fecha_seguimiento = datetime.datetime.today().strftime("%Y-%m")
 
 #carga configuracion
@@ -62,7 +62,7 @@ for filename1 in files:
             load_sql1 += " fields terminated by '\t' escaped by '' "
             load_sql1 += " lines terminated by '\n'"
             load_sql1 += " ignore 1 lines"
-            load_sql1 += " (numcte, num_credito, correo_elec, valido, status_correo);"
+            load_sql1 += " (num_cliente, correo_elec, valido, status_correo);"
             cursor.execute(load_sql1)
             cf.logging_carga(cursor, filename, staging_table1)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,' Carga archivo correos')
@@ -76,7 +76,7 @@ for filename1 in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,' Actualiza tabla Concentrada')
 
             paso = 3
-            staging_step_3a = "insert ignore into " + table 
+            staging_step_3a = "insert ignore into " + table + " (num_cliente, correo_elec, valido, status_correo)"
             staging_step_3a += " select a.* "
             staging_step_3a += " from Staging." + staging_table1 + " a"
             staging_step_3a += " left join " + table + " b"
