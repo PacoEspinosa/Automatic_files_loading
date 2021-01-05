@@ -81,7 +81,7 @@ for filename in files:
             staging_step_2a = " truncate table " + table + ";"
             cursor.execute(staging_step_2a)
             staging_step_2b = "insert ignore into " + table 
-            staging_step_2b += " select substr(registro,4,12) as num_credito, trim(substr(registro,31,12)) as designacion,"
+            staging_step_2b += " select distinct substr(registro,4,12) as num_credito, trim(substr(registro,31,12)) as designacion,"
             staging_step_2b += " abs(substr(registro,43,5)) as calificacion, trim(substr(registro,55,9)) as riesgo"
             staging_step_2b += " from Staging." + staging_table + ";"
             cursor.execute(staging_step_2b)
