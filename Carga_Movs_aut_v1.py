@@ -44,10 +44,13 @@ for r, d, f in os.walk(path):
     for file in f:
         files.append(file)
 
-filename1 = filepattern01 + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m") + fileext01
-filename2 = filepattern01 + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m") + fileext02
-filename3 = filepattern01 + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m") + fileext03
-filename4 = filepattern02 + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m") + fileext
+
+#month = (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m")
+month = '202010'
+filename1 = filepattern01 + month + fileext01
+filename2 = filepattern01 + month + fileext02
+filename3 = filepattern01 + month + fileext03
+filename4 = filepattern02 + month + fileext
 filename = filepattern01 + " / " + filepattern02 + " / " + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m")
 
 if filename1 in files and filename2 in files and filename3 in files and filename4 in files:
@@ -110,7 +113,7 @@ if filename1 in files and filename2 in files and filename3 in files and filename
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Crea catalogo de negocios del mes')
     
             paso = 4
-            staging_step_4 = "insert into Catalogos.cat_clasificacion_negocios (infreceptor) "
+            staging_step_4 = "insert ignore into Catalogos.cat_clasificacion_negocios (infreceptor) "
             staging_step_4 += " select a.* from Staging.tmp_negocios_nvos a left join Catalogos.cat_clasificacion_negocios b "
             staging_step_4 += " on a.infreceptor = b.infreceptor"
             staging_step_4 += " where b.infreceptor is null;"
@@ -118,7 +121,7 @@ if filename1 in files and filename2 in files and filename3 in files and filename
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta negocios del mes en Catalogo general')
     
             paso = 5
-            staging_step_5 = "insert into " + table + " select Secuencia,"
+            staging_step_5 = "insert ignore into " + table + " select Secuencia,"
             staging_step_5 += " cod_iso,"
             staging_step_5 += " codgironeg,"
             staging_step_5 += " no_tarjeta,"
