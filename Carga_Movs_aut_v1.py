@@ -46,12 +46,14 @@ for r, d, f in os.walk(path):
 
 
 #month = (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m")
-month = '202010'
+month = '202012'
 filename1 = filepattern01 + month + fileext01
 filename2 = filepattern01 + month + fileext02
 filename3 = filepattern01 + month + fileext03
 filename4 = filepattern02 + month + fileext
 filename = filepattern01 + " / " + filepattern02 + " / " + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y%m")
+
+current_month = (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y-%m")
 
 if filename1 in files and filename2 in files and filename3 in files and filename4 in files:
     #print(filename1, " / ", filename2)
@@ -99,8 +101,12 @@ if filename1 in files and filename2 in files and filename3 in files and filename
             load_sql4 += " lines terminated by '\n'"
             load_sql4 += " ignore 1 lines;"
             cursor.execute(load_sql4)
+            
             cf.logging_carga(cursor, filename4, staging_table)
-
+            staging_step_2e = "delete from Staging." +staging_table 
+            staging_step_2e += " where substr(fechaoper,1,7) > '" + current_month + "';"
+            cursor.execute(staging_step_2e)
+            
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo autorizaciones')
     #Staging
             paso = 3

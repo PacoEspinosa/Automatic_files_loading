@@ -64,7 +64,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
     #Staging
             paso = 2
-            staging_step_1a = "update Staging." + staging_table + " Set FECHASOL = concat(substr(FECHASOL,7,4), '-', substr(FECHASOL,1,2), '-', substr(FECHASOL,4,2))"
+            staging_step_1a = "update ignore Staging." + staging_table + " Set FECHASOL = concat(substr(FECHASOL,7,4), '-', substr(FECHASOL,1,2), '-', substr(FECHASOL,4,2))"
             staging_step_1a += "where length(FECHASOL) = 10;"
             cursor.execute(staging_step_1a)
             staging_step_1b = "update Staging." + staging_table + " Set FECHANAC = concat(substr(FECHANAC,7,4), '-', substr(FECHANAC,1,2), '-', substr(FECHANAC,4,2))"
@@ -79,14 +79,14 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
     
             paso = 3
-            staging_step_2a = "insert into Staging.tmp_solicitudes_rvw select * from Staging.tmp_solicitudes where length(FECHASOL) <> 10;"
+            staging_step_2a = "insert ignore into Staging.tmp_solicitudes_rvw select * from Staging.tmp_solicitudes where length(FECHASOL) <> 10;"
             cursor.execute(staging_step_2a)
             staging_step_2b = "delete from Staging." + staging_table + " where length(FECHASOL) <> 10;"
             cursor.execute(staging_step_2b)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Elimina registros con fechas incorrectas')
     
             paso = 4
-            staging_step_3 = "update " + table + " a, Staging." + staging_table + " b set a.statussol = b.statussol,"
+            staging_step_3 = "update ignore " + table + " a, Staging." + staging_table + " b set a.statussol = b.statussol,"
             staging_step_3 += " a.causa = b.causa,"
             staging_step_3 += " a.status = b.status,"
             staging_step_3 += " a.fecha_apert = b.fecha_apert,"
@@ -97,7 +97,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza status solicitudes existentes')
     
             paso = 5
-            staging_step_4 = "insert into " + table + " select"
+            staging_step_4 = "insert ignore into " + table + " select"
             staging_step_4 += " a.NUMSOLICITUD,"
             staging_step_4 += " a.NUMCTE,"
             staging_step_4 += " a.NUMCTECOPPEL,"
@@ -209,7 +209,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'inserta solicitudes nuevas')
     
             paso = 6
-            staging_step_5 = "insert into Datos_generales.Domicilio (num_cliente) select distinct a.numcte"
+            staging_step_5 = "insert ignore into Datos_generales.Domicilio (num_cliente) select distinct a.numcte"
             staging_step_5 += " from Staging.tmp_solicitudes a left join Datos_generales.Domicilio b"
             staging_step_5 += " on a.NUMCTE = b.Num_cliente"
             staging_step_5 += " where b.Num_cliente is null;"
@@ -217,7 +217,7 @@ for filename in files:
             cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'inserta en domicilios nuevos')
            
             paso = 7
-            staging_step_6 = "update Datos_generales.Domicilio a, Staging.tmp_solicitudes b set a.Calle = b.CALLE,"
+            staging_step_6 = "update ignore Datos_generales.Domicilio a, Staging.tmp_solicitudes b set a.Calle = b.CALLE,"
             staging_step_6 += " a.numext = b.numext,"
             staging_step_6 += " a.numint = b.numint,"
             staging_step_6 += " a.Colonia = b.colonia,"
