@@ -25,6 +25,7 @@ warnings.simplefilter('ignore')
 #Constantes
 filepattern = 'OutBehavioral_'
 fileext = ".txt"
+staging_table_segmentado = 'tmpbehavioralv1'
 staging_table = 'tmpbehavioral'
 table = 'Cuentas_tc.OutBehavioral'
 pasos_proceso = 3
@@ -66,29 +67,55 @@ for filename in files:
             print('Archivo previamente cargado: ' + filename)
             con.close()
         else:
-            paso = 1
-            load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
-            load_sql += " fields terminated by '|' escaped by '' "
-            load_sql += " lines terminated by '\n'"
-            load_sql += " ;"
-            #print(filename)
-            cursor.execute('truncate table Staging.' + staging_table + ';')
-            cursor.execute(load_sql)
-            cf.logging_carga(cursor, filename, staging_table)
-            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Importa archivo OutBehavioral')
-    #Staging
-            paso = 2
-            staging_step_2a = " truncate table " + table + ";"
-            cursor.execute(staging_step_2a)
-            staging_step_2b = "insert ignore into " + table 
-            staging_step_2b += " select distinct substr(registro,4,12) as num_credito, trim(substr(registro,31,12)) as designacion,"
-            staging_step_2b += " abs(substr(registro,43,5)) as calificacion, trim(substr(registro,55,9)) as riesgo"
-            staging_step_2b += " from Staging." + staging_table + ";"
-            cursor.execute(staging_step_2b)
-            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'inserta registros actuales')
+            filetype = input('Tipo de archivo a cargar Segmentado/Oneline')
+            if filetype == 'Segmentado':
+                paso = 1
+                load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table_segmentado
+                load_sql += " fields terminated by ';' optionally enclosed by '\"'"
+                load_sql += " lines terminated by '\r\n'"
+                load_sql += " ignore 1 lines;"
+                #print(filename)
+                cursor.execute('truncate table Staging.' + staging_table_segmentado + ';')
+                cursor.execute(load_sql)
+                cf.logging_carga(cursor, filename, staging_table_segmentado)
+                cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Importa archivo OutBehavioral')
+        #Staging
+                paso = 2
+                staging_step_2a = " truncate table " + table + ";"
+                cursor.execute(staging_step_2a)
+                staging_step_2b = "insert ignore into " + table + " (num_credito, Designación, Calificación)"
+                staging_step_2b += " select distinct num_credito, segmento, calificacion"
+                staging_step_2b += " from Staging." + staging_table_segmentado + ";"
+                cursor.execute(staging_step_2b)
+                cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'inserta registros actuales')
+                print('Proceso de carga terminado: ' + filename)
+            elif filetype == 'Oneline':
+                paso = 1
+                load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
+                load_sql += " fields terminated by '|' escaped by '' "
+                load_sql += " lines terminated by '\n'"
+                load_sql += " ;"
+                #print(filename)
+                cursor.execute('truncate table Staging.' + staging_table + ';')
+                cursor.execute(load_sql)
+                cf.logging_carga(cursor, filename, staging_table)
+                cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Importa archivo OutBehavioral')
+        #Staging
+                paso = 2
+                staging_step_2a = " truncate table " + table + ";"
+                cursor.execute(staging_step_2a)
+                staging_step_2b = "insert ignore into " + table 
+                staging_step_2b += " select distinct substr(registro,4,12) as num_credito, trim(substr(registro,31,12)) as designacion,"
+                staging_step_2b += " abs(substr(registro,43,5)) as calificacion, trim(substr(registro,55,9)) as riesgo"
+                staging_step_2b += " from Staging." + staging_table + ";"
+                cursor.execute(staging_step_2b)
+                cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'inserta registros actuales')
+                print('Proceso de carga terminado: ' + filename)
+            else:
+                print('Proporciona opcion válida')
+                filepattern = '__'
     
            
-            print('Proceso de carga terminado: ' + filename)
     
             con.close()
         
