@@ -127,8 +127,12 @@ for step in range(6):
             df.to_sql(tablename, conn, if_exists='append', index=False)
             cursorObj = conn.cursor()
             updt_fecha = 'update ' + tablename + " set fecha_mov = substr(fecha_mov,7,4) || '-' || substr(fecha_mov,1,2) || '-' || substr(fecha_mov,4,2),"
-            updt_fecha += " control = 'ok'" 
-            updt_fecha += " where (control is null or control ='');"
+            if tablename == 'hiscred_pres_flex' or  tablename == 'hiscred_pres':
+                updt_fecha += " Control2 = 'ok'" 
+                updt_fecha += " where (Control2 is null or Control2 ='');"
+            else:
+                updt_fecha += " control = 'ok'" 
+                updt_fecha += " where (control is null or control ='');"
             cursorObj.execute(updt_fecha)
             #limpia_rep = 'delete from ' + tablename
             #limpia_rep += "  where secuencia in ('2', '3');" 

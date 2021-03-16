@@ -21,7 +21,7 @@ warnings.simplefilter('ignore')
 #funciones
 
 #Constantes
-transact_table = 'Transacciones_TDC_2020'
+transact_table = 'Transacciones_TDC_2021'
 operative_table = 'Operativas'
 filepattern = 'his_credito'
 fileext = ""

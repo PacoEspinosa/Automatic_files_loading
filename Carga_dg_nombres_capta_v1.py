@@ -21,7 +21,7 @@ warnings.simplefilter('ignore')
 
 #funciones
 #Constantes
-filepattern01 = 'demograficos_capta_01'
+filepattern01 = 'demograficos_capta'
 fileext = ".dat"
 staging_table1 = 'tmp_nombres'
 table = 'Datos_generales.nombres'

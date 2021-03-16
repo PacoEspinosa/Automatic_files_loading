@@ -62,7 +62,7 @@ for filename1 in files:
             load_sql1 += " fields terminated by '\t' escaped by '' "
             load_sql1 += " lines terminated by '\n'"
             load_sql1 += " ignore 1 lines"
-            load_sql1 += " (numcte, num_credito, correo_elec, valido, status_correo);"
+            load_sql1 += " (num_cliente, num_credito, correo_elec, valido, status_correo);"
             cursor.execute(load_sql1)
             cf.logging_carga(cursor, filename, staging_table1)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,' Carga archivo correos')
