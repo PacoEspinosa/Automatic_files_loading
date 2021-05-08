@@ -20,14 +20,15 @@ files = []
 warnings.simplefilter('ignore')
 
 #Constantes
-filepattern = 'CustomerBEX2.0'
+filepattern = 'Detalle de Sucursales Mayo 2021 (Inicio) Basico'
 fileext = ".xlsx"
-staging_table = 'tmp_ctes_largos2'
-table = 'Cuentas_tc.Clientes_largos2'
-historic_table = 'Historicos.Clientes_largos2'
+staging_table = 'tmp_cat_sucursales'
+table = ''
+historic_table = ''
 pasos_proceso = 3
-proceso = 'Carga clientes largos riesgos'
-tableName = 'CustomerBX'
+proceso = ''
+tableName = 'Catalogos.cat_sucursales'
+schema_name = 'Staging'
 
 #carga configuracion
 exec(open("config.py").read())
@@ -41,14 +42,18 @@ files = cf.listado_archivos(path, filepattern)
 for filename in files:
     try:
         paso = 0
-        sqlEngine       = create_engine('mysql+pymysql://' + user + ':' + password + '@' + host + '/Cuentas_tc', pool_recycle=3600)        
+        sqlEngine       = create_engine('mysql+pymysql://' + user + ':' + password + '@' + host + '/' + schema_name, pool_recycle=3600)        
+        #dbConnection    = sqlEngine.connect()
         dbConnection    = sqlEngine.connect()
-        col_names = ['_id','customerNumber','cellphone']
-        Sheets = ['CustomerBEX2']
+        col_names = ['no_sucursal','nombre_sucursal','zona_banco','gerencia',
+                     'nombre_gerencia','calle','num_ext','num_medio','num_int',
+                     'colonia','municipio','estado','cp','estatus_dom',
+                     'tel_sucursal']
+        Sheets = ['Basico']
         for sheet in Sheets:
             #print(sheet)
-            df = pandas.read_excel(filename, sheet_name=sheet)
-            df.to_sql(tableName, dbConnection, if_exists='append', index=False);
+            df = pandas.read_excel(filename, sheet_name=sheet, names=col_names)
+            df.to_sql(staging_table, dbConnection, if_exists='replace', index=False);
 
     except ValueError as vx:
     
