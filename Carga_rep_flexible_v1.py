@@ -84,9 +84,10 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
     
             paso = 3
-            staging_step_2a = "truncate Cuentas_tc.Rep_flexible;"
+            staging_step_2a = "truncate " + table + ";"
             cursor.execute(staging_step_2a)
-            staging_step_2b = "insert into Cuentas_tc.Rep_flexible select num_credito,"
+            staging_step_2b = "insert into " + table 
+            staging_step_2b += " select num_credito,"
             staging_step_2b += " num_disposición,"
             staging_step_2b += " num_cliente,"
             staging_step_2b += " suc,"
@@ -109,7 +110,8 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla del mes')
     
             paso = 4
-            staging_step_3 = "insert into Historicos.Rep_flexible select " + datetime.datetime.today().strftime("%Y-%m-%d") + ","
+            staging_step_3 = "insert into " + historic_table
+            staging_step_3 += " select '" + datetime.datetime.today().strftime("%Y-%m-%d") + "',"
             staging_step_3 += " num_credito,"
             staging_step_3 += " num_disposición,"
             staging_step_3 += " num_cliente,"
@@ -127,7 +129,7 @@ for filename in files:
             staging_step_3 += " meses_vencido,"
             staging_step_3 += " fecha_apertura,"
             staging_step_3 += " linea_credito"
-            staging_step_3 += " from Cuentas_tc.Rep_flexible;"
+            staging_step_3 += " from " + table + ";"
             cursor.execute(staging_step_3)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla historica')
     

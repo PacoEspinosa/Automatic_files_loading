@@ -43,7 +43,6 @@ for filename in files:
     try:
         paso = 0
         sqlEngine       = create_engine('mysql+pymysql://' + user + ':' + password + '@' + host + '/' + schema_name, pool_recycle=3600)        
-        #dbConnection    = sqlEngine.connect()
         dbConnection    = sqlEngine.connect()
         col_names = ['no_sucursal','nombre_sucursal','zona_banco','gerencia',
                      'nombre_gerencia','calle','num_ext','num_medio','num_int',

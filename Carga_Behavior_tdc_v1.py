@@ -67,7 +67,7 @@ for filename in files:
             print('Archivo previamente cargado: ' + filename)
             con.close()
         else:
-            filetype = input('Tipo de archivo a cargar Segmentado/Oneline')
+            filetype = input('Tipo de archivo a cargar Segmentado/Oneline: ')
             if filetype == 'Segmentado':
                 paso = 1
                 load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table_segmentado

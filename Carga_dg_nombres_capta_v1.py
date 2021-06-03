@@ -25,7 +25,7 @@ filepattern01 = 'demograficos_capta'
 fileext = ".dat"
 staging_table1 = 'tmp_nombres'
 table = 'Datos_generales.nombres'
-pasos_proceso = 3
+pasos_proceso = 4
 proceso = 'Carga nombre'
 fecha_seguimiento = datetime.datetime.today().strftime("%Y-%m")
 
@@ -73,6 +73,16 @@ if filename1 in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo nombres')
     #Staging
             paso = 3
+            staging_step_2a = "update Staging." + staging_table1 
+            staging_step_2a += " set apell_paterno = replace(apell_paterno,'Ã?','Ñ'), "
+            staging_step_2a += " apell_materno = replace(apell_materno,'Ã?','Ñ'), "
+            staging_step_2a += " nombre1 = replace(nombre1,'Ã?','Ñ'), "
+            staging_step_2a += " nombre2 = replace(nombre2,'Ã?','Ñ') "
+            staging_step_2a += " ;"
+            cursor.execute(staging_step_2a)
+            cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Corrige caracteres invalidos')
+        
+            paso = 4
             staging_step_3a = "insert into " + table + " select * from Staging." + staging_table1 + " b"
             staging_step_3a += " on duplicate key update  num_cte_coppel = b.num_cte_coppel,"
             staging_step_3a += " apell_paterno = b.apell_paterno,"
