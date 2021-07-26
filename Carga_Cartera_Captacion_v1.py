@@ -83,6 +83,8 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta información financiera en tabla histórica')
 
             paso = 4
+            staging_step_1a = "Truncate table " + current_table + ";"
+            cursor.execute(staging_step_1a)
             staging_step_4 = "insert ignore into " + current_table 
             staging_step_4 += " select Suc_origen, num_cuenta, num_cliente, num_ejecutivo, fecha_apertura,"
             staging_step_4 += " fecha_seguimiento, saldo_fin_mes, tasa, status"
@@ -92,14 +94,26 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta información financiera en tabla mes actual')
     
             paso = 5
-            staging_step_5 = "insert ignore into " + general_table 
-            staging_step_5 += " (Suc_origen, num_cuenta, num_cliente, num_ejecutivo, fecha_apertura,"
-            staging_step_5 += " tasa, status)"
-            staging_step_5 += " select a.Suc_origen, a.num_cuenta, a.num_cliente, a.num_ejecutivo, a.fecha_apertura,"
-            staging_step_5 += " a.tasa, a.status"
-            staging_step_5 += " from " + current_table + " a left join " + general_table + " b"
-            staging_step_5 += " on a.num_cuenta = b.num_cuenta"
-            staging_step_5 += " where b.num_cuenta is null;"
+            staging = 'select count(*) from (select * from ' + general_table + " limit 10) a;"
+            cursor.execute(staging)
+            myresult = cursor.fetchone()
+            if myresult[0] == 0:
+                staging_step_5 = "insert ignore into " + general_table 
+                staging_step_5 += " (Suc_origen, num_cuenta, num_cliente, num_ejecutivo, fecha_apertura,"
+                staging_step_5 += " tasa, status)"
+                staging_step_5 += " select Suc_origen, num_cuenta, num_cliente, num_ejecutivo, fecha_apertura,"
+                staging_step_5 += " tasa, status"
+                staging_step_5 += " from " + current_table + ";"
+            else:
+                staging_step_5 = "insert ignore into " + general_table 
+                staging_step_5 += " (Suc_origen, num_cuenta, num_cliente, num_ejecutivo, fecha_apertura,"
+                staging_step_5 += " tasa, status)"
+                staging_step_5 += " select a.Suc_origen, a.num_cuenta, a.num_cliente, a.num_ejecutivo, a.fecha_apertura,"
+                staging_step_5 += " a.tasa, a.status"
+                staging_step_5 += " from " + current_table + " a left join " + general_table + " b"
+                staging_step_5 += " on a.num_cuenta = b.num_cuenta"
+                staging_step_5 += " where b.num_cuenta is null;"
+
             cursor.execute(staging_step_5)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta en portafolio concentrado')
     

@@ -20,10 +20,10 @@ warnings.simplefilter('ignore')
 
     
 #Constantes
-staging_table = 'Trabajos_prueba.tmp_transacciones_totaleros_202009'
-final_table = 'Trabajos_prueba.transacciones_totaleros_202009'
+staging_table = 'Trabajos_prueba.tmp_transacciones_HotSale_202105'
+final_table = 'Trabajos_prueba.transacciones_HotSale_202105'
 tipo_match = 'Monto_justo'
-grupo_campaña = 'Totaleros_datos'
+grupo_campaña = ''
 limite_trxns = 5
 pasos_proceso = 4
 proceso = 'Extrae top 5 transacciones'
@@ -88,6 +88,7 @@ try:
         SQL_text += ' from ' + staging_table
         SQL_text += " where num_credito = '" + str(row[0]) + "'"
         SQL_text += " and tipo_matchl = '" + tipo_match + "'"
+        SQL_text += " order by monto desc"
         SQL_text += " limit " + str(limite_trxns)
         SQL_text += ';'
         cursor.execute(SQL_text)
