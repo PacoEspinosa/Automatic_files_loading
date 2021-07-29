@@ -53,7 +53,7 @@ else:
 
 #filename = filepattern + dias_mes + (datetime.datetime.today() - datetime.timedelta(50)).strftime("%m%Y") + fileext
 for filename in files:
-   
+
     try:
         paso = 0
         con = pymysql.connect(host = host, 
