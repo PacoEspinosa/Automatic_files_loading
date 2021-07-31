@@ -33,34 +33,39 @@ def exporta_archivos_ready(format, template, path, df):
         Statfile = "Resumen_sesion_" + template + "_" + datetime.datetime.now().strftime("%Y%m%d_%H%M%S") + ".txt"
         total_rows = df.shape[0]
         ToGo = total_rows
-        customer_id = ''
         row_count = 0
         pkgs = 0
+        proceso_x_terminar = True
         for index, Row in df.iterrows():
             if row_count == 0:
                 FNameFile = NameFile + ('-0' if pkgs <= 9 else '-') + str(pkgs) + ".ready"
                 f = open(path + '\\' + FNameFile, "a")
-                f.write(Header + str(recs_limit if ToGo > recs_limit else ToGo))
+                f.write(Header + str(recs_limit if ToGo > recs_limit else ToGo) + chr(10))
                 
             if row_count == (recs_limit-1):
-                f.write(str(row_count) + '|' + str(Row[1]) + '||||||' + template + '|nombre=' + str(Row[2]) + chr(10))
+                f.write(str(row_count+1) + '|' + str(Row[1]) + '||||||' + template + '|nombre=' + str(Row[2]) + chr(10))
                 row_count = 0
                 pkgs +=1
                 s = open(path + '\\' + Statfile, "a")
-                s.write(FNameFile + "(" + str(recs_limit if ToGo > recs_limit else ToGo) + " regs)"
+                s.write(FNameFile + " - " + str(recs_limit if ToGo > recs_limit else ToGo) + " regs" + chr(10))
                 s.close()
                 ToGo -= recs_limit
                 f.write('<EOF>')
                 f.close()
+                if ToGo < recs_limit and ToGo != 0:
+                    proceso_x_terminar = True
+                else:
+                    proceso_x_terminar = False
             else:
                 row_count +=1
                 f.write(str(row_count) + '|' + str(Row[1]) + '||||||' + template + '|nombre=' + str(Row[2]) + chr(10))
 
-        f.write('<EOF>')
-        f.close()
-        s = open(path + '\\' + Statfile, "a")
-        s.write(FNameFile + "(" + str(recs_limit if ToGo > recs_limit else ToGo) + " regs)"
-        s.close()
+        if proceso_x_terminar:
+            f.write('<EOF>')
+            f.close()
+            s = open(path + '\\' + Statfile, "a")
+            s.write(FNameFile + " - " + str(recs_limit if ToGo > recs_limit else ToGo) + " regs" + chr(10))
+            s.close()
     else:
         print('Necesitas proprocionar un dataframe válido.')
         return
