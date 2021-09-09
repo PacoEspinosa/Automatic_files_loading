@@ -27,7 +27,7 @@ staging_table = 'Staging.tmp_portafolio_captacion'
 historic_table = 'Historicos.Portafolio_captacion'
 general_table = 'Cuentas_tc.Portafolio_captacion_concentrado'
 current_table = 'Cuentas_tc.Portafolio_captacion'
-pasos_proceso = 6
+pasos_proceso = 7
 proceso = 'Carga Cartera Captacion'
 
 #carga configuracion
@@ -62,6 +62,7 @@ for filename in files:
             load_sql1 += " fields terminated by '|' escaped by '' "
             load_sql1 += " lines terminated by '\n';"
             cursor.execute(load_sql1)
+            cf.logging_carga(cursor,filename, staging_table)
             cf.logging_proceso(cursor,proceso + ': ' + filename ,pasos_proceso,paso,'Carga archivo solicitudes')
     
     #Staging
@@ -73,7 +74,7 @@ for filename in files:
             staging_step_2a += " where control = '';"
             cursor.execute(staging_step_2a)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza formato de fechas')
-    
+                
             paso = 3
             staging_step_3 = "insert ignore into " + historic_table
             staging_step_3 += " select num_cuenta, num_cliente, fecha_seguimiento, saldo_fin_mes, tasa, status "
@@ -81,7 +82,7 @@ for filename in files:
             staging_step_3 += " where control = 'ok';"
             cursor.execute(staging_step_3)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta información financiera en tabla histórica')
-
+            
             paso = 4
             staging_step_1a = "Truncate table " + current_table + ";"
             cursor.execute(staging_step_1a)
@@ -92,7 +93,7 @@ for filename in files:
             staging_step_4 += " where control = 'ok';"
             cursor.execute(staging_step_4)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta información financiera en tabla mes actual')
-    
+                
             paso = 5
             staging = 'select count(*) from (select * from ' + general_table + " limit 10) a;"
             cursor.execute(staging)
@@ -132,7 +133,7 @@ for filename in files:
             staging_step_7 += " where b.num_cuenta is null;"
             cursor.execute(staging_step_7)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Actualiza status cuentas eliminadas')
-           
+                       
             print('Proceso de carga terminado: ' + filename)
     
             con.close()

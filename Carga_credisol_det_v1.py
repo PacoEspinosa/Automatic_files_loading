@@ -10,6 +10,7 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
 import os
 import pymysql
 import warnings
+import datetime
 import Complement_functions as cf
 
 #Variables
@@ -28,7 +29,7 @@ staging_table = 'tmp_credisolucion'
 table = 'Cuentas_tc.Credisolucion'
 historic_table = 'Historicos.Credisolucion'
 general_table = 'Cuentas_tc.Credisolucion_general'
-pasos_proceso = 7
+pasos_proceso = 9
 proceso = 'Carga Credisol'
 
 #carga configuracion
@@ -77,7 +78,7 @@ for filename in files:
             paso = 3
             staging_step_3a = "Truncate table " + table + ";"
             cursor.execute(staging_step_3a)
-            staging_step_3b = "insert ignore into " + table
+            staging_step_3b = "insert into " + table
             staging_step_3b += " select num_credito, Num_Cliente, Num_Credisoluciones, Fecha_Contratacion, Sucursal, Nombre_Promocion,"
             staging_step_3b += " Tasa, Monto_Contratado, Comision_disposicion, Plazo, Saldo_Insoluto, Capital_Insoluto,"
             staging_step_3b += " Interes_pagar, Iva_Pagar, Estatus_Credisolucion, Motivo, Mensualidades_Pagar,"
@@ -88,7 +89,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros mes actual')
     
             paso = 4
-            staging_step_4 = "insert ignore into " + historic_table 
+            staging_step_4 = "insert into " + historic_table 
             staging_step_4 += " select Num_Credito, Num_Cliente, Num_credisoluciones, '" + fecha_seguimiento + "' as Fecha_seguimiento,"
             staging_step_4 += " Saldo_Insoluto, Capital_Insoluto, Estatus_Credisolucion, Motivo, Mensualidades_pagar"
             staging_step_4 += " from Staging." + staging_table + ";"
@@ -96,7 +97,7 @@ for filename in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros base histórica')
     
             paso = 5
-            staging_step_5 = "insert ignore into " + general_table + " select"
+            staging_step_5 = "insert into " + general_table + " select"
             staging_step_5 += " a.num_credito,"
             staging_step_5 += " a.Num_Cliente,"
             staging_step_5 += " a.Num_Credisoluciones,"
@@ -134,7 +135,24 @@ for filename in files:
             cursor.execute(staging_step_7)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso, paso,'Actualiza fecha de seguimiento')
     
-    
+            paso = 8
+            staging_step_8 = """create temporary table Trabajos_prueba.tmp_saldo_promocion as
+                                select num_credito, sum(saldo_insoluto) as saldo_promo, count(*) as trxn_promo
+                                from Cuentas_tc.Credisolucion
+                                where Saldo_insoluto > 0
+                                group by num_credito;"""
+            cursor.execute(staging_step_8)
+            staging_step_8 = """create index tmp_idx_promocion_cta on Trabajos_prueba.tmp_saldo_promocion (num_credito asc);"""
+            cursor.execute(staging_step_8)
+            cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'actualiza fecha primera compra')
+           
+            paso = 9
+            staging_step_9 = "update Cuentas_tc.Cartera a, Trabajos_prueba.tmp_saldo_promocion b "
+            staging_step_9 += " set a.saldo_total_fin_mes = ifnull(a.saldo_fin_mes,0) + ifnull(Saldo_promo,0)"
+            staging_step_9 += " where a.num_credito = b.num_credito;"
+            cursor.execute(staging_step_9)
+            cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'actualiza fecha primera compra')
+   
             print('Proceso de carga terminado: ' + filename)
     
             con.close()

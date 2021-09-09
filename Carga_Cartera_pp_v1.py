@@ -48,7 +48,6 @@ filename = filename1 + " / " + filename2
 if filename1 in files and filename2 in files:
     #print(filename1, " / ", filename2)
     try:
-        paso = 0
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
@@ -124,7 +123,7 @@ if filename1 in files and filename2 in files:
             staging_step_4 += " when substr(a.num_credito,1,2) = '78' then 'ADN' when substr(a.num_credito,1,2) = '61' then 'Reestructura' "
             staging_step_4 += " when substr(a.num_credito,1,2) = '63' then 'PP_12' when substr(a.num_credito,1,2) = '69' then 'PFB'"
             staging_step_4 += " when substr(a.num_credito,1,2) = '76' then 'PP_18' when substr(a.num_credito,1,2) = '77' then 'PP_24' "
-            staging_step_4 += " when substr(a.num_credito,1,2) = '68' then 'Flexible' when substr(a.num_credito,1,2) = '85' then 'G.Coppel' "
+            staging_step_4 += " when substr(a.num_credito,1,2) = '68' then 'Digital' when substr(a.num_credito,1,2) = '85' then 'G.Coppel' "
             staging_step_4 += " else 'S/P' end as Prod,"
             staging_step_4 += " sucursal,"
             staging_step_4 += " estatus_credito,"

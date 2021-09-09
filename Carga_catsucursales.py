@@ -20,7 +20,7 @@ files = []
 warnings.simplefilter('ignore')
 
 #Constantes
-filepattern = 'Detalle de Sucursales Mayo 2021 (Inicio) Basico'
+filepattern = '2021.07 Detalle de Sucursales (Inicio) Basico'
 fileext = ".xlsx"
 staging_table = 'tmp_cat_sucursales'
 table = ''
@@ -51,7 +51,7 @@ for filename in files:
         Sheets = ['Basico']
         for sheet in Sheets:
             #print(sheet)
-            df = pandas.read_excel(filename, sheet_name=sheet, names=col_names)
+            df = pandas.read_excel(filename, sheet_name=sheet, names=col_names, dtype=str)
             df.to_sql(staging_table, dbConnection, if_exists='replace', index=False);
 
     except ValueError as vx:
@@ -64,7 +64,7 @@ for filename in files:
     
     else:
     
-        print("Table %s created successfully."%tableName);   
+        print("Table %s created successfully."%staging_table);   
     
     finally:
     

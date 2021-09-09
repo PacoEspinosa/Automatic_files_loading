@@ -53,7 +53,7 @@ else:
 
 #filename = filepattern + dias_mes + (datetime.datetime.today() - datetime.timedelta(50)).strftime("%m%Y") + fileext
 for filename in files:
-
+   
     try:
         paso = 0
         con = pymysql.connect(host = host, 
@@ -67,7 +67,7 @@ for filename in files:
             print('Archivo previamente cargado: ' + filename)
             con.close()
         else:
-            filetype = input('Tipo de archivo a cargar Segmentado/Oneline: ')
+            filetype = input('Tipo de archivo a cargar Segmentado/Oneline')
             if filetype == 'Segmentado':
                 paso = 1
                 load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table_segmentado

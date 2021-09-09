@@ -11,7 +11,6 @@ import os
 import pymysql
 import warnings
 import datetime
-import fnmatch
 import Complement_functions as cf
 
 #Variables
@@ -25,6 +24,7 @@ warnings.simplefilter('ignore')
 filepattern01 = 'maecred'
 filepattern02 = 'maesdos'
 fileext = ".txt"
+port = 3306
 staging_table1 = 'tmp_maecred'
 staging_table2 = 'tmp_maesdos'
 table = 'Cuentas_tc.Cartera'
@@ -38,9 +38,8 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-for file in os.listdir(path):
-    if fnmatch.fnmatch(file, (filepattern01 + '*')) or fnmatch.fnmatch(file, (filepattern02 + '*')):
-        #print(file)
+for r, d, f in os.walk(path):
+    for file in f:
         files.append(file)
 
 filename1 = filepattern01 + '_' + cf.Nombre_mes((datetime.datetime.today() - datetime.timedelta(28)).strftime("%m")) + '_' + (datetime.datetime.today() - datetime.timedelta(28)).strftime("%Y") + fileext
@@ -50,7 +49,8 @@ filename = filename1 + " / " + filename2
 if filename1 in files and filename2 in files:
     #print(filename1, " / ", filename2)
     try:
-        paso = 0
+        paso = 1
+
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
@@ -62,7 +62,6 @@ if filename1 in files and filename2 in files:
             print('Archivo previamente cargado: ' + filename)
             con.close()
         else:
-            paso = 1
             staging_step_1a = "RENAME TABLE Cuentas_tc.Cartera TO Cuentas_tc.Cartera_" + (datetime.datetime.today() - datetime.timedelta(56)).strftime("%Y%m")
             cursor.execute(staging_step_1a)
             staging_step_1b = "CREATE TABLE if not exists Cuentas_tc.Cartera ( "
@@ -84,6 +83,7 @@ if filename1 in files and filename2 in files:
             staging_step_1b += " fecha_cluster_act char(11) DEFAULT NULL,"
             staging_step_1b += " Cluster_inactividad varchar(15) DEFAULT NULL,"
             staging_step_1b += " fecha_cluster_inact char(11) DEFAULT NULL,"
+            staging_step_1b += " saldo_total_fin_mes double DEFAULT NULL,"
             staging_step_1b += " KEY `cartera_fec` (fecha_apertura),"
             staging_step_1b += " KEY `cartera_cta` (num_credito),"
             staging_step_1b += " KEY `cartera_cte` (num_cliente)"
@@ -108,11 +108,11 @@ if filename1 in files and filename2 in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
     #Staging
             paso = 3
-            staging_step_3a = "update Staging." + staging_table1 + " Set fecha_apertura = concat(substr(fecha_apertura,7,4), '-', substr(fecha_apertura,1,2), '-', substr(fecha_apertura,4,2))"
+            staging_step_3a = "update ignore Staging." + staging_table1 + " Set fecha_apertura = concat(substr(fecha_apertura,7,4), '-', substr(fecha_apertura,1,2), '-', substr(fecha_apertura,4,2))"
             staging_step_3a += ", control = 'ok'"
             staging_step_3a += " where control = '';"
             cursor.execute(staging_step_3a)
-            staging_step_3b = "update Staging." + staging_table2 + " Set fecha = concat(substr(fecha,7,4), '-', substr(fecha,1,2), '-', substr(fecha,4,2))"
+            staging_step_3b = "update ignore Staging." + staging_table2 + " Set fecha = concat(substr(fecha,7,4), '-', substr(fecha,1,2), '-', substr(fecha,4,2))"
             staging_step_3b += ", control = 'ok'"
             staging_step_3b += " where control = '';"
             cursor.execute(staging_step_3b)
@@ -133,7 +133,7 @@ if filename1 in files and filename2 in files:
             staging_step_5 += " when substr(a.num_credito,1,2) = '78' then 'ADN' when substr(a.num_credito,1,2) = '61' then 'Reestructura' "
             staging_step_5 += " when substr(a.num_credito,1,2) = '63' then 'PP_12' when substr(a.num_credito,1,2) = '69' then 'PFB'"
             staging_step_5 += " when substr(a.num_credito,1,2) = '76' then 'PP_18' when substr(a.num_credito,1,2) = '77' then 'PP_24' "
-            staging_step_5 += " when substr(a.num_credito,1,2) = '68' then 'Flexible' when substr(a.num_credito,1,2) = '85' then 'G.Coppel' "
+            staging_step_5 += " when substr(a.num_credito,1,2) = '68' then 'Digital' when substr(a.num_credito,1,2) = '85' then 'G.Coppel' "
             staging_step_5 += " else 'S/P' end as Prod,"
             staging_step_5 += " sucursal,"
             staging_step_5 += " estatus_credito,"
@@ -158,9 +158,34 @@ if filename1 in files and filename2 in files:
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'inserta informacion de cartera')
     
             paso = 6
-            staging_step_6 = "update Cuentas_tc.Cartera a, Cuentas_tc.prim_actividad b set a.f_primer_trxn = b.f_primer_trxn, a.primer_trxn = b.primer_trxn"
+            staging_step_6 = "update ignore Cuentas_tc.Cartera a, Cuentas_tc.prim_actividad b set a.f_primer_trxn = b.f_primer_trxn, a.primer_trxn = b.primer_trxn"
             staging_step_6 += " where a.num_credito = b.num_credito;"
             cursor.execute(staging_step_6)
+            cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'actualiza fecha primera compra')
+
+            paso = 7
+            staging_step_7 = """create temporary table Trabajos_prueba.tmp_saldo_promocion as
+                                select num_credito, sum(saldo_insoluto) as saldo_promo, count(*) as trxn_promo
+                                from Cuentas_tc.Credisolucion
+                                where Saldo_insoluto > 0
+                                group by num_credito;"""
+            cursor.execute(staging_step_7)
+            staging_step_7 = """create index tmp_idx_promocion_cta on Trabajos_prueba.tmp_saldo_promocion (num_credito asc);"""
+            cursor.execute(staging_step_7)
+            cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'actualiza fecha primera compra')
+           
+            paso = 8
+            staging_step_8 = "update ignore Cuentas_tc.Cartera a, Trabajos_prueba.tmp_saldo_promocion b "
+            staging_step_8 += " set a.saldo_total_fin_mes = ifnull(a.saldo_fin_mes,0) + ifnull(Saldo_promo,0)"
+            staging_step_8 += " where a.num_credito = b.num_credito;"
+            cursor.execute(staging_step_8)
+            cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'actualiza fecha primera compra')
+           
+            paso = 9
+            staging_step_9 = "update ignore Cuentas_tc.Cartera "
+            staging_step_9 += " set saldo_total_fin_mes = saldo_fin_mes "
+            staging_step_9 += " where saldo_total_fin_mes is null;"
+            cursor.execute(staging_step_9)
             cf.logging_proceso(cursor, proceso + ': ' + filename, pasos_proceso, paso, 'actualiza fecha primera compra')
            
             print('Proceso de carga terminado: ' + filename)

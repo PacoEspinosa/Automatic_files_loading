@@ -6,7 +6,7 @@ subject: Proceso de carga historica, donde se conoce las fechas disponibles
  y los archivos a cargar se encuentran en una carpeta especifica.
 @author: francisco
 """
-#Librerias
+
 import os
 import pymysql
 import warnings
@@ -39,12 +39,14 @@ password = config['Database_Config']['contrasena']
 host = config['Database_Config']['servidor'] 
 port = config['Database_Config']['puerto']
 
-files = cf.listado_archivos(path, filepattern)
+for r, d, f in os.walk(path):
+    for file in f:
+        files.append(file)
 
-#filename = filepattern + '03' + datetime.datetime.today().strftime("%m%y") + fileext
-for filename in files:
+filename = filepattern + '03' + datetime.datetime.today().strftime("%m%y") + fileext
+if filename in files:
+   
     try:
-        paso = 0
         con = pymysql.connect(host = host, 
                           user = user, 
                           password = password, 
@@ -176,6 +178,5 @@ for filename in files:
         
     except Exception as e:
         print('Error: {}'.format(str(e)) + ' Paso:' + str(paso))    
-
-if files == []:
-    print('No se localizaron archivos de carga')
+else:
+    print('No se localizó el archivo: ' + filename)

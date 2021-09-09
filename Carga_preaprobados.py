@@ -1,10 +1,8 @@
-#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Mon Dec  2 23:34:44 2019
-subject: Proceso de carga historica, donde se conoce las fechas disponibles
- y los archivos a cargar se encuentran en una carpeta especifica.
-@author: francisco
+Created on Fri Aug 27 18:15:47 2021
+
+@author: fespinosa
 """
 
 import os
@@ -23,13 +21,13 @@ warnings.simplefilter('ignore')
 
     
 #Constantes
-filepattern = 'Largo_Mar20'
-fileext = ".csv"
-staging_table = 'tmp_ctes_largos2'
-table = 'Cuentas_tc.Clientes_largos2'
-historic_table = 'Historicos.Clientes_largos2'
+filepattern = 'ETIQUETASEGMENTOS_'
+fileext = ".txt"
+staging_table = 'Staging.preaprobados'
+table = 'Cuentas_tc.Preaprobados'
+historic_table = 'Historicos.Preaprobados'
 pasos_proceso = 3
-proceso = 'Carga clientes largos riesgos'
+proceso = 'Carga clientes preaprobados riesgos'
 fec_seguimiento = datetime.datetime.today().strftime("%Y-%m")
 
 #carga configuracion
@@ -57,66 +55,71 @@ for filename in files:
             con.close()
         else:
             paso = 1
-            load_sql = "load data local infile '" + filename + "' into table Staging." + staging_table
-            load_sql += " fields terminated by ','"
-            load_sql += " optionally enclosed by '" + chr(34) + "'"
+            load_sql = "load data local infile '" + filename + "' into table " + staging_table
+            load_sql += " fields terminated by '|'"
             load_sql += " lines terminated by '\r\n'"
             load_sql += " ignore 1 lines"
             load_sql += ";"
             #print(filename)
-            cursor.execute('truncate table Staging.' + staging_table + ';')
+            cursor.execute('truncate table ' + staging_table + ';')
             cursor.execute(load_sql)
-            cf.logging_carga(cursor, filename, staging_table)
+            #cf.logging_carga(cursor, filename, staging_table)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Carga archivo solicitudes')
 
             paso = 2
             staging_step_2a = "truncate " + table
             cursor.execute(staging_step_2a)
-            staging_step_2b = "insert into " + table + " ("
+            staging_step_2b = "insert ignore into " + table + " ("
             staging_step_2b += " num_cliente,"
+            staging_step_2b += " cosecha,"
+            staging_step_2b += " cap_meses,"
+            staging_step_2b += " cap_promedio6M,"
+            staging_step_2b += " cap_depositos_tot6M,"
             staging_step_2b += " sucursal_cliente,"
-            staging_step_2b += " fecha_proceso,"
-            staging_step_2b += " fecha_apertura,"
+            staging_step_2b += " cap_cuentas,"
+            staging_step_2b += " inversion,"
+            staging_step_2b += " cap_remesas_tot6M,"
+            staging_step_2b += " remesas,"
+            staging_step_2b += " cap_mesesAnt,"
             staging_step_2b += " segmento,"
-            staging_step_2b += " cliente_clase,"
-            staging_step_2b += " edo_sucursal,"
-            staging_step_2b += " mpo_sucursal,"
-            staging_step_2b += " cp_sucursal,"
-            staging_step_2b += " nombre_sucursal"
+            staging_step_2b += " cliente_clase"
             staging_step_2b += " ) "
             staging_step_2b += " select "
-            staging_step_2b += " sucursal_cliente,"
             staging_step_2b += " num_cliente,"
-            staging_step_2b += " fecha_proceso,"
-            staging_step_2b += " fecha_apertura,"
+            staging_step_2b += " cosecha,"
+            staging_step_2b += " cap_meses,"
+            staging_step_2b += " cap_promedio6M,"
+            staging_step_2b += " cap_depositos_tot6M,"
+            staging_step_2b += " sucursal_cliente,"
+            staging_step_2b += " cap_cuentas,"
+            staging_step_2b += " inversion,"
+            staging_step_2b += " cap_remesas_tot6M,"
+            staging_step_2b += " remesas,"
+            staging_step_2b += " cap_mesesAnt,"
             staging_step_2b += " segmento,"
-            staging_step_2b += " cliente_clase,"
-            staging_step_2b += " edo_sucursal,"
-            staging_step_2b += " mpo_sucursal,"
-            staging_step_2b += " cp_sucursal,"
-            staging_step_2b += " nombre_sucursal"
-            staging_step_2b += " from Staging." + staging_table
+            staging_step_2b += " cliente_clase"
+            staging_step_2b += " from " + staging_table
             cursor.execute(staging_step_2b)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla del mes')
-            """
+            
             paso = 3
-            staging_step_3 = "insert into " + historic_table + " select '" + fec_seguimiento + "' ,"
+            staging_step_3 = "insert ignore into " + historic_table + " select "
             staging_step_3 += " num_cliente,"
-            staging_step_3 += " num_cuenta,"
-            staging_step_3 += " nombre1,"
-            staging_step_3 += " nombre2,"
-            staging_step_3 += " apell_paterno,"
-            staging_step_3 += " apell_materno,"
-            staging_step_3 += " correo_elec,"
-            staging_step_3 += " codpostal,"
-            staging_step_3 += " estado,"
-            staging_step_3 += " casa,"
-            staging_step_3 += " celular,"
-            staging_step_3 += " saldo"
-            staging_step_3 += " from Staging." + staging_table
+            staging_step_3 += " cosecha,"
+            staging_step_3 += " cap_meses,"
+            staging_step_3 += " cap_promedio6M,"
+            staging_step_3 += " cap_depositos_tot6M,"
+            staging_step_3 += " cap_cuentas,"
+            staging_step_3 += " inversion,"
+            staging_step_3 += " cap_remesas_tot6M,"
+            staging_step_3 += " remesas,"
+            staging_step_3 += " cap_mesesAnt,"
+            staging_step_3 += " segmento,"
+            staging_step_3 += " cliente_clase"
+            staging_step_3 += " from " + staging_table
             cursor.execute(staging_step_3)
             cf.logging_proceso(cursor,proceso + ': ' + filename,pasos_proceso,paso,'Inserta registros en tabla historica')
-            """   
+            
             print('Proceso de carga terminado: ' + filename)
     
             con.close()
