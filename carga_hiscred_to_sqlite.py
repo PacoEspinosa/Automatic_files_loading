@@ -134,9 +134,9 @@ for step in range(6):
                 updt_fecha += " control = 'ok'" 
                 updt_fecha += " where (control is null or control ='');"
             cursorObj.execute(updt_fecha)
-            #limpia_rep = 'delete from ' + tablename
-            #limpia_rep += "  where secuencia in ('2', '3');" 
-            #cursorObj.execute(limpia_rep)
+            limpia_rep = 'delete from ' + tablename
+            limpia_rep += "  where secuencia in ('2', '3');" 
+            cursorObj.execute(limpia_rep)
             conn.commit()
             cursorObj.close()
             os.replace(csvfile, bckfile)
