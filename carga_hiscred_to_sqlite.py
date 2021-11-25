@@ -10,12 +10,12 @@ import pandas
 import os
 import Complement_functions as cf
 
-database_path = 'C:\\Users\\fespinosa\\Documents\\Trabajo\\DWH\\'
+database_path = 'C:\\Users\\fespinosa.BANCOPPEL\\Documents\\Trabajo\\DWH\\'
 database_filename = 'trxn_diarias.db'
 conn = sqlite3.connect(database_path + database_filename)
 
-filename_path = 'C:\\Users\\fespinosa\\Documents\\Trabajo\\tmp\\Carga\\'
-filename_path_bck = 'C:\\Users\\fespinosa\\Documents\\Trabajo\\tmp\\Carga\\historico\\'
+filename_path = 'C:\\Users\\fespinosa.BANCOPPEL\\Documents\\Trabajo\\tmp\\Carga\\'
+filename_path_bck = 'C:\\Users\\fespinosa.BANCOPPEL\\Documents\\Trabajo\\tmp\\Carga\\historico\\'
 
 tables = ['hiscred_pres_flex','hiscred_ADN','Hiscred_GC','Hiscred_Oro','hiscred_pres','hiscred']
 filesnames = ['his_credito_pres_flex','hisantic_nom','Hiscred_GrupoCoppel','Hiscred_Oro','his_credito_pres','his_credito']
