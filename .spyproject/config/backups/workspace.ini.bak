@@ -6,5 +6,5 @@ save_non_project_files = False
 
 [main]
 version = 0.2.0
-recent_files = ['..\\..\\..\\.spyder-py3\\temp.py', 'carga_hiscred_to_sqlite.py']
+recent_files = ['Carga_Cartera_especial.py', 'Complement_functions.py', 'Export_functions.py', 'Carga_ASR_tdc_v1.py']
 
